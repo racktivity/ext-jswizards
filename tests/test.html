@@ -1,0 +1,27 @@
+<html>
+<head>
+  <link href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/base/jquery-ui.css" rel="stylesheet" type="text/css"/>
+  <script type="text/javascript" src="http://code.jquery.com/jquery-1.5.js"></script>
+  <script src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/jquery-ui.min.js"></script>
+  <script src="http://plugins.jquery.com/files/jquery.floatbox.1.0.8.js.txt"></script>
+<script type="text/javascript" src='../js/jswizards.js'></script>
+<script>
+	function test(){
+		form = new Form();
+		form.createForm();
+		form.addTab('tab1', "tab1");
+		form.addText('tab1', 'name', 'user name:');
+		form.message('tab1', 'message', 'showing a bolded message', true);
+		form.addTab('tab2', 'mysecondtab');
+		form.addPassword('mysecondtab','password', 'password:')
+		form.addTab('tab3', 'mythirdtab');
+		form.addChoice('mythirdtab', 'choices', 'choose something:', ['value1', 'value2', 'value3'], 'value2')
+		form.addChoiceMultiple('mythirdtab', 'multiple choices', 'choose multiple', ['choice1', 'choice2', 'choice3'])
+		form.finalize();
+	}
+</script> 
+</head>
+<body onload="test();">
+<div id="test"></div>	
+</body>
+</html>
