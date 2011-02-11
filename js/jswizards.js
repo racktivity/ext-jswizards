@@ -53,25 +53,57 @@ function Form() {
 		var choicestring = '';
 		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
 		for (value in values) {
-			console.log('value: '+values[value][1]);
 			stringvalue = values[value][0];
-			if (selectedValue != null && selectedValue == values[value][1]){
+			if (selectedValue != null && selectedValue == value){
 				choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" checked="checked" >' + stringvalue + '</input></br>';
 			}
 			else choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" >'+ stringvalue + '</input></br>';
 		}
-		alert(choicestring);
+		//alert(choicestring);
 		$('#form')[0].innerHTML += choicestring + '</div>';
+		if (callbackname != null){
+			$('input').change(function(){
+				processCallback(callbackname);
+			})
+		};
 	}
 	
 	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname) {
 		var choicestring = '';
 		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
-		for (value in values) {
-			choicestring += '<input type="checkbox"  name=' + values[value] + '/>' + values[value] + '</br>';
+		for (valueindex in values) {
+			value = values[valueindex];
+			if (selectedValue == value){
+				choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + ' checked="checked" >' + value + '</br>';
+			}
+			else choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + '>' + value + '</br>';
 		}
 		$('#form')[0].innerHTML += choicestring + '</div>';
+		if (callbackname != null){
+			$('input').change(function(){
+				processCallback(callbackname);
+			})
+		};
 	}
+	
+	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname) {
+		var htmlstring = '';
+		htmlstring += '<div id=' + tabid + '><form name="input" method="get">' + text + '<select id="' + name + '">';
+		for (valueindex in values) {
+			value = values[valueindex];
+			if (selectedValue == value) {
+				htmlstring += '<option checked="checked" value=' + valueindex + '>' + value + '</option>';
+			}
+			else htmlstring += '<option value=' + valueindex + '>' + value + '</option>';
+		}
+		$('#form')[0].innerHTML += '</select>' + htmlstring + '</div>';
+		if (callbackname != null){
+			$('select').change(function(){
+				processCallback(callbackname);
+			})
+		};
+	}
+
 	this.message = function(tabid, name, text, bold, multiline) {
 		if (typeof bold == 'undefined') bold = false;
 		if (typeof multiline == 'undefined') multiline = false;

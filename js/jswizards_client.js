@@ -119,6 +119,9 @@ function processData(jsondata) {
 			else if (controltype == 'label') {
 				form.message(tabid, elementname, elementtext, element['bold'], element['multiline']);
 			}
+			else if (controltype == 'dropdown') {
+				form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+			}
 			else {
 				alert('control type not defined or not implemented yet !!');
 			}
@@ -156,15 +159,14 @@ function save(callresult) {
 				element['value'] = $('#' + id).val();
 			}
 			else if (controltype == 'option' || controltype == 'optionmultiple') {
-				v =  $("input[name="+id+"]:checked").val();
-	
 				console.log($("input[name="+id+"]:checked")[0].id);
 				element['value'] = $("input[name="+ id +"]:checked")[0].id;
-				//console.log('*********'+element['value']);
+			}
+			else if (controltype == 'dropdown') {
+				element['value'] = $("select").val();
 			}
 		}
 	}
-	//console.log(resultdata);
 	if (callresult == true){
 		result(this.sessionId, JSON.stringify(resultdata), this.applicationserverIp, success)
 	}
