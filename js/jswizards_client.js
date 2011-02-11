@@ -64,7 +64,7 @@ var success = function(data, status){
             	processData(data);
             }
         }
-        
+
 function processData(jsondata) {
 	if (jsondata[0] != '{') {
 			this.sessionId = jsondata[0];
@@ -73,7 +73,12 @@ function processData(jsondata) {
 	else {
 		this.dataobj = JSON.parse(jsondata);
 	}
-	this.tabs = this.dataobj['params']['tabs'];
+	try{
+		this.tabs = this.dataobj['params']['tabs'];
+	}
+	catch (err) {
+		console.log(err);
+	}
 	console.log(dataobj);
 	$form = $('#form');
 	$form.replaceWith($form.html());
@@ -94,11 +99,10 @@ function processData(jsondata) {
 			else password = false;
 			if ('callback' in element) callbackname = element['callback'];
 			else callbackname = null;
+			if ('value' in element) value = element['value'];
+			else value = null;
 
 			if (controltype == 'text') {
-				if ('value' in element) value = element['value'];
-				else value = null;
-
 				if (password == false) {
 					form.addText(tabid, elementname, elementtext, value, optional, callbackname);
 				}
@@ -107,13 +111,9 @@ function processData(jsondata) {
 				}
 			}
 			else if (controltype == 'option') {
-				if ('selectedValue' in element) value = element['selectedValue'];
-				else value = 0;
 				form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
 			}
 			else if (controltype == 'optionmultiple') {
-				if ('selectedValue' in element) value = element['selectedValue'];
-				else value = 0;
 				form.addChoiceMultiple(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
 			}
 			else if (controltype == 'label') {
@@ -150,13 +150,17 @@ function save(callresult) {
 		for (elementindex in tabs[tabindex]['elements']) {
 			element = elements[elementindex];
 			id = element['name'];
-			console.log(id);
+			//console.log(id);
 			controltype = element['control'];
 			if (controltype == 'text' || controltype == 'password') {
 				element['value'] = $('#' + id).val();
 			}
 			else if (controltype == 'option' || controltype == 'optionmultiple') {
-				element['value'] = $('#' + id + ':checked').val();
+				v =  $("input[name="+id+"]:checked").val();
+	
+				console.log($("input[name="+id+"]:checked")[0].id);
+				element['value'] = $("input[name="+ id +"]:checked")[0].id;
+				//console.log('*********'+element['value']);
 			}
 		}
 	}

@@ -25,48 +25,23 @@ function Form() {
 			required = 'required';
 		}
 		var contents = '';
-		//contents += '<div id=' + tabid + '><form name="input"  method="get">\
-		//' + text + '<input type=' + type + ' id=' + name + ' size="25" class=' + required + ' minlength="2"';
-		
-		
+
 		contents += '<div id=' + tabid + '><form name="input"  method="get">\
         ' + text + '<input type=' + type + ' id=' + name + ' size="25" class=' + required + ' minlength="2"';
         if (value != null) {
         	contents += ' value=' + value;
         }
         contents += ' /></div>';
-        //alert(contents);
 		$('#form')[0].innerHTML += contents;
 		if (callbackname != null){
 			$('input').change(function(){
-				//alert('calling callback');
 				processCallback(callbackname);
 			})
 		};
-		/**
-		if (callbackname != null) {
-			contents += ' onchange=processCallback(callbackname)';
-		}
-		
-		if (value != null) {
-			contents += ' value=' + value;
-		}
-
-		contents +=  ' /></div>';
-		alert(contents);
-		$('#form').html += contents;
-		**/
-	};
-	
-	/**
-	 * GOOD:<div id=tab_main><form name="input"  method="get">        What is your name<input type=text id=txt_namesize="25" class=required minlength="2" /></div>
-	 * BAD: <div id=tab_main><form name="input"  method="get">		What is your name<input type=text id=txt_name size="25" class=required minlength="2" onchange=processCallback(callbackname) /></div>
-	 */
-	
+	};	
 	
 	this.addText = function(tabid, name, text, value, optional, callbackname) {
 		addInput(tabid, 'text', name, text, value, optional, callbackname);
-		//console.log($('#'+name).val());
 	}
 
 	this.addPassword = function(tabid, name, text, value, optional, callbackname) {
@@ -74,14 +49,18 @@ function Form() {
 	}
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname) {
+		console.log('selectedValue='+selectedValue);
 		var choicestring = '';
 		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
 		for (value in values) {
-			if (selectedValue != null){
-				choicestring += '<input type="radio" id=' + name + ' name=' + name + 'checked />' + values[value][0] + '</br>';
+			console.log('value: '+values[value][1]);
+			stringvalue = values[value][0];
+			if (selectedValue != null && selectedValue == values[value][1]){
+				choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" checked="checked" >' + stringvalue + '</input></br>';
 			}
-			else choicestring += '<input type="radio" id=' + name + ' name=' + name + '/>' + values[value][0] + '</br>';
+			else choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" >'+ stringvalue + '</input></br>';
 		}
+		alert(choicestring);
 		$('#form')[0].innerHTML += choicestring + '</div>';
 	}
 	
@@ -92,9 +71,7 @@ function Form() {
 			choicestring += '<input type="checkbox"  name=' + values[value] + '/>' + values[value] + '</br>';
 		}
 		$('#form')[0].innerHTML += choicestring + '</div>';
-		//return $('input[name=' + name + ']:checked').val();
 	}
-	
 	this.message = function(tabid, name, text, bold, multiline) {
 		if (typeof bold == 'undefined') bold = false;
 		if (typeof multiline == 'undefined') multiline = false;
