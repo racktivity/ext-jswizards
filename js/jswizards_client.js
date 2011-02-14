@@ -61,6 +61,7 @@ var success = function(data, status){
                 alert("No data returned!!");
             }
             else {
+            	//alert(data);
             	processData(data);
             }
         }
@@ -78,6 +79,10 @@ function processData(jsondata) {
 	}
 	catch (err) {
 		console.log(err);
+	}
+	if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard') {
+		closeFloatBox(false);
+		return;
 	}
 	console.log(dataobj);
 	$form = $('#form');
@@ -103,12 +108,16 @@ function processData(jsondata) {
 			else value = null;
 
 			if (controltype == 'text') {
-				if (password == false) {
-					form.addText(tabid, elementname, elementtext, value, optional, callbackname);
-				}
-				else {
+				if (password == true) {
 					form.addPassword(tabid, elementname, elementtext, value, optional, callbackname);
 				}
+				else if (element['multiline'] == true) {
+					form.addMultiline(tabid, elementname, elementtext, value, optional, callbackname);
+				}
+				else form.addText(tabid, elementname, elementtext, value, optional, callbackname);
+			}
+			else if (controltype == 'integer') {
+				form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
 			}
 			else if (controltype == 'option') {
 				form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
@@ -121,6 +130,15 @@ function processData(jsondata) {
 			}
 			else if (controltype == 'dropdown') {
 				form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+			}
+			else if (controltype == 'number') {
+				form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
+			}
+			else if (controltype == 'date') {
+				form.addDate(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
+			}
+			else if (controltype == 'datetime') {
+				form.addDateTime(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
 			}
 			else {
 				alert('control type not defined or not implemented yet !!');
@@ -153,17 +171,34 @@ function save(callresult) {
 		for (elementindex in tabs[tabindex]['elements']) {
 			element = elements[elementindex];
 			id = element['name'];
-			//console.log(id);
 			controltype = element['control'];
-			if (controltype == 'text' || controltype == 'password') {
+			if (controltype == 'text' || controltype == 'password' || controltype == 'number') {
 				element['value'] = $('#' + id).val();
 			}
 			else if (controltype == 'option' || controltype == 'optionmultiple') {
-				console.log($("input[name="+id+"]:checked")[0].id);
 				element['value'] = $("input[name="+ id +"]:checked")[0].id;
 			}
 			else if (controltype == 'dropdown') {
 				element['value'] = $("select").val();
+			}
+			else if (controltype == 'date') {
+				val = $('#datepicker').val();
+				parts = val.split('/');
+				datevalue = new Date(parts[2], parts[0], parts[1]);
+				epoch = datevalue.getTime();
+				element['value'] = epoch/1000;
+			}
+			else if (controltype == 'datetime') {
+				val = $('#datetimepicker').val();
+				parts = val.split('/');
+				month = parts[0];
+				day = parts[1];
+				subparts = parts[2].split(' ');
+				year = subparts[0];
+				hour = subparts[1].split(':')[0];
+				minute = subparts[1].split(':')[1];
+				datevalue = new Date(year, month, day, hour, minute);
+				element['value'] = datevalue.getTime()/1000;
 			}
 		}
 	}
@@ -173,7 +208,21 @@ function save(callresult) {
 	return resultdata;
 };
 
-function closeFloatBox(){
-	stop(this.sessionId, this.applicationserverIp);
-	window.location = "javascript:void(0)";
+function closeFloatBox(callstop){
+	if (callstop) {
+		stop(this.sessionId, this.applicationserverIp);
+	}
+	$(".close-floatbox").click();
 }
+
+function allowNumbersOnly(evt, minvalue, maxvalue)
+      {
+         var charCode = (evt.which) ? evt.which : event.keyCode
+         if (charCode > minvalue && charCode < maxvalue)
+            return true;
+
+         return false;
+      }
+
+
+

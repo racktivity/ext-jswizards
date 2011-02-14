@@ -4,7 +4,7 @@ function Form() {
 		$.floatbox({
 		        content: '<div id="form"><ul></ul></div>\
 		        <input type="submit" value="Save" onClick="save()"/>\
-		        <input type="button" name="cancel" value="Cancel" onclick="closeFloatBox()" class="close-floatbox"/>',
+		        <input type="button" name="cancel" value="Cancel" onclick="closeFloatBox()"/>',
 		        fade: true
 		    });
 	 }
@@ -27,7 +27,7 @@ function Form() {
 		var contents = '';
 
 		contents += '<div id=' + tabid + '><form name="input"  method="get">\
-        ' + text + '<input type=' + type + ' id=' + name + ' size="25" class=' + required + ' minlength="2"';
+        ' + text + '<input type=' + type + ' id=' + name + ' class=' + required + ' minlength="2"';
         if (value != null) {
         	contents += ' value=' + value;
         }
@@ -48,8 +48,32 @@ function Form() {
 		addInput(tabid, 'password', name, text, value, optional, callbackname);
 	}
 	
+	this.addInteger = function(tabid, name, text, value, minvalue, maxvalue, optional, callbackname) {
+		if (!optional) optional = true;
+		
+		var required = '';
+		if (optional == true) {
+			required = 'required';
+		}
+		var contents = '';
+
+		//onchange(allowNumbersOnly,'+minvalue+','+maxvalue+') 
+		contents += '<div id=' + tabid + '><form name="input"  method="get">\
+        ' + text + '<input type="text" id=' + name;
+        if (value != null) {
+        	contents += ' value=' + value;
+        }
+        contents += ' /></div>';
+		$('#form')[0].innerHTML += contents;
+		//$("#"+name).rangeSlider();
+		if (callbackname != null){
+			$('input').change(function(){
+				processCallback(callbackname);
+			})
+		};
+	}
+	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname) {
-		console.log('selectedValue='+selectedValue);
 		var choicestring = '';
 		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
 		for (value in values) {
@@ -59,7 +83,6 @@ function Form() {
 			}
 			else choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" >'+ stringvalue + '</input></br>';
 		}
-		//alert(choicestring);
 		$('#form')[0].innerHTML += choicestring + '</div>';
 		if (callbackname != null){
 			$('input').change(function(){
@@ -118,5 +141,58 @@ function Form() {
 			<div id=' + name + '>' + text + '</div>';
 		}
 	}
+
+	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname) {
+		//#TODO: Implement minValue and maxValue and format
+		//#TODO: Make sure the returned value is in epoch like with flash
+		console.log('heree');
+		$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
+			<p>' + text + ' <input type="text" id="datepicker" /></p></div>';
+		$(function() {
+			$("#datepicker").datepicker();
+		});
+		if (callbackname != null){
+			$('input').change(function(){
+				processCallback(callbackname);
+			})
+		};
+	};
 	
+	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname) {
+		//#TODO: Implement minValue and maxValue and format
+		//#TODO: Make sure the returned value is in epoch like with flash
+		$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
+			<p>' + text + ' <input id="datetimepicker" type="text" /></p></div>';
+		$(function() {
+			$("#datetimepicker").datetimepicker();
+		});
+		if (callbackname != null){
+			$('input').change(function(){
+				processCallback(callbackname);
+			})
+		};
+	}
+	
+	this.addMultiline = function(tabid, name, text, value, optional, callbackname) {
+		if (!optional) optional = true;
+		
+		var required = '';
+		if (optional == true) {
+			required = 'required';
+		}
+		var contents = '';
+
+		contents += '<div id=' + tabid + '><form name="input"  method="get">\
+        ' + text + '<textarea id=' + name + ' class=' + required;
+        if (value != null) {
+        	contents += ' value=' + value;
+        }
+        contents += ' ></textarea></div>';
+		$('#form')[0].innerHTML += contents;
+		if (callbackname != null){
+			$('input').change(function(){
+				processCallback(callbackname);
+			})
+		};
+	}
 }
