@@ -215,14 +215,21 @@ function closeFloatBox(callstop){
 	$(".close-floatbox").click();
 }
 
-function allowNumbersOnly(evt, minvalue, maxvalue)
-      {
-         var charCode = (evt.which) ? evt.which : event.keyCode
-         if (charCode > minvalue && charCode < maxvalue)
-            return true;
-
-         return false;
+function checkInteger(id) {
+    var inputval = $('#' + id).val();
+    var s_len = inputval.length ;
+    var s_charcode = 0;
+    for (var s_i=0;s_i<s_len;s_i++) {
+       s_charcode = inputval.charCodeAt(s_i);
+       if(!((s_charcode>=48 && s_charcode<=57))) {
+        alert("Only Numeric Values Allowed");
+        inputval = '';
+		$('#' + id).focus();
+        return false;
       }
+    }
+    return true;
+}
 
 
 

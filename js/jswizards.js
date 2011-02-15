@@ -57,7 +57,6 @@ function Form() {
 		}
 		var contents = '';
 
-		//onchange(allowNumbersOnly,'+minvalue+','+maxvalue+') 
 		contents += '<div id=' + tabid + '><form name="input"  method="get">\
         ' + text + '<input type="text" id=' + name;
         if (value != null) {
@@ -65,12 +64,12 @@ function Form() {
         }
         contents += ' /></div>';
 		$('#form')[0].innerHTML += contents;
-		//$("#"+name).rangeSlider();
-		if (callbackname != null){
-			$('input').change(function(){
+		$('input').change(function(){
+			checkInteger(name);
+			if (callbackname != null){
 				processCallback(callbackname);
-			})
-		};
+			}
+		})
 	}
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname) {
