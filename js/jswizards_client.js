@@ -23,7 +23,7 @@ function start(customerGuid, wizardName, applicationserverIp, success) {
 
 }
 
-function result(sessionId, resultData, applicationserverIp, success) {
+function callResult(sessionId, resultData, applicationserverIp, success) {
 	url = "http://"+applicationserverIp+"/appserver/rest/wizard_engine/result?sessionId="+sessionId+"&result="+resultData;
 	//callAppserver(url, success, 'result');
     jQuery.ajax({url: url,
@@ -56,7 +56,7 @@ function stop(sessionId, applicationserverIp) {
 	});
 }
 
-var success = function(data, status){
+function success(data, status){
             if (!data){
                 alert("No data returned!!");
             }
@@ -74,78 +74,118 @@ function processData(jsondata) {
 	else {
 		this.dataobj = JSON.parse(jsondata);
 	}
-	try{
-		this.tabs = this.dataobj['params']['tabs'];
+	if (typeof dataobj.params != 'undefined' && dataobj.params.hasOwnProperty('tabs')) {
+		try{
+			this.tabs = this.dataobj['params']['tabs'];
+		}
+		catch (err) {
+			console.log(err);
+		}
+		if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard') {
+			closeFloatBox(false);
+			return;
+		}
+		console.log(dataobj);
+		$form = $('#form');
+		$form.replaceWith($form.html());
+	
+		form = new Form();
+		form.createForm();
+		for (tabindex in tabs) {
+			form.addTab(tabs[tabindex]['text'], tabs[tabindex]['name']);
+			elements = tabs[tabindex]['elements'];
+			tabid = tabs[tabindex]['name'];
+			for (elementindex in elements) {
+				element = elements[elementindex];
+				elementname = element['name'];
+				elementtext = element['text'];
+				controltype = element['control'];
+				optional = element['optional']
+				if ('password' in element) password = element['password'];
+				else password = false;
+				if ('callback' in element) callbackname = element['callback'];
+				else callbackname = null;
+				if ('value' in element) value = element['value'];
+				else value = null;
+	
+				if (controltype == 'text') {
+					if (password == true) {
+						form.addPassword(tabid, elementname, elementtext, value, optional, callbackname);
+					}
+					else if (element['multiline'] == true) {
+						form.addMultiline(tabid, elementname, elementtext, value, optional, callbackname);
+					}
+					else form.addText(tabid, elementname, elementtext, value, optional, callbackname);
+				}
+				else if (controltype == 'integer') {
+					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
+				}
+				else if (controltype == 'option') {
+					form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+				}
+				else if (controltype == 'optionmultiple') {
+					form.addChoiceMultiple(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+				}
+				else if (controltype == 'label') {
+					form.message(tabid, elementname, elementtext, element['bold'], element['multiline']);
+				}
+				else if (controltype == 'dropdown') {
+					form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+				}
+				else if (controltype == 'number') {
+					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
+				}
+				else if (controltype == 'date') {
+					form.addDate(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
+				}
+				else if (controltype == 'datetime') {
+					form.addDateTime(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
+				}
+				else {
+					alert('control type not defined or not implemented yet !!');
+				}
+			};
+		}
+		form.finalize();
 	}
-	catch (err) {
-		console.log(err);
+	else {
+		processOldStyleData(dataobj);
 	}
-	if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard') {
-		closeFloatBox(false);
-		return;
+}
+
+//var this.form = null;
+function processOldStyleData(dataobj) {
+	if (!this.form) {
+		form = new Form();
+		form.createForm();
+		this.form = form;
 	}
 	console.log(dataobj);
-	$form = $('#form');
-	$form.replaceWith($form.html());
-
-	form = new Form();
-	form.createForm();
-	for (tabindex in tabs) {
-		form.addTab(tabs[tabindex]['text'], tabs[tabindex]['name']);
-		elements = tabs[tabindex]['elements'];
-		tabid = tabs[tabindex]['name'];
-		for (elementindex in elements) {
-			element = elements[elementindex];
-			elementname = element['name'];
-			elementtext = element['text'];
-			controltype = element['control'];
-			optional = element['optional']
-			if ('password' in element) password = element['password'];
-			else password = false;
-			if ('callback' in element) callbackname = element['callback'];
-			else callbackname = null;
-			if ('value' in element) value = element['value'];
-			else value = null;
-
-			if (controltype == 'text') {
-				if (password == true) {
-					form.addPassword(tabid, elementname, elementtext, value, optional, callbackname);
-				}
-				else if (element['multiline'] == true) {
-					form.addMultiline(tabid, elementname, elementtext, value, optional, callbackname);
-				}
-				else form.addText(tabid, elementname, elementtext, value, optional, callbackname);
-			}
-			else if (controltype == 'integer') {
-				form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
-			}
-			else if (controltype == 'option') {
-				form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
-			}
-			else if (controltype == 'optionmultiple') {
-				form.addChoiceMultiple(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
-			}
-			else if (controltype == 'label') {
-				form.message(tabid, elementname, elementtext, element['bold'], element['multiline']);
-			}
-			else if (controltype == 'dropdown') {
-				form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
-			}
-			else if (controltype == 'number') {
-				form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
-			}
-			else if (controltype == 'date') {
-				form.addDate(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
-			}
-			else if (controltype == 'datetime') {
-				form.addDateTime(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
-			}
-			else {
-				alert('control type not defined or not implemented yet !!');
-			}
-		};
+	params = dataobj['params'];
+	control = params['control'];
+	cb = null;
+	if (control == 'label') {
+		this.form.message(params['text']);
 	}
-	form.finalize();
+	else if (control == 'text') {
+		if (params['password'] == true) {
+			cb = this.form.askPassword(params['text'], params['value']);
+		}
+		else {
+		cb = this.form.askString(params['text'], params['value']);
+		}
+	}
+	else if (control == 'dropdown') {
+		cb = this.form.askDropdown(params['text'], params['values'], params['value']);
+	}
+	else if (control == 'option') {
+		cb = this.form.askChoice(params['text'], params['values'], params['value']);
+	}
+	else alert('control type not implemented yet!!');
+
+	if (cb != null) {
+		dataobj['callback'] = cb;
+	}
 }
 
 function processCallback(callbackname) {
@@ -203,7 +243,7 @@ function save(callresult) {
 		}
 	}
 	if (callresult == true){
-		result(this.sessionId, JSON.stringify(resultdata), this.applicationserverIp, success)
+		callResult(this.sessionId, JSON.stringify(resultdata), this.applicationserverIp, success)
 	}
 	return resultdata;
 };
@@ -229,6 +269,13 @@ function checkInteger(id) {
       }
     }
     return true;
+}
+
+function next() {
+	if (this.dataobj.hasOwnProperty('callback')){
+		this.dataobj['result'] = this.dataobj['callback']();
+	}
+	callResult(this.sessionId, JSON.stringify(this.dataobj), this.applicationserverIp, success)
 }
 
 
