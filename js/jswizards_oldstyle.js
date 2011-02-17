@@ -37,14 +37,28 @@ function Form() {
 		<div id=' + text + '>' + text + '</div>';
 	};
 	
+	this.askMultiline = function(question, defaultValue) {
+		var contents = '';
+		name = question.replace(' ', '');
+		contents += '<form name="input"  method="get">\
+        ' + question + '<textarea id=' + name;
+        if (defaultValue != null) {
+        	contents += ' value=' + defaultValue;
+        }
+        contents += ' ></textarea>';
+		$('#form').append(contents);
+
+		return function(){
+			return $("#" + name).val();
+		}
+	}
+	
 	this.askChoice = function(question, choices, defaultValue, sortChoices, sortCallBack) {
 		var choicestring = '';
 		name = question.replace(' ', '');
 		choicestring += '<form name="input" method="get">' + question + '</br>';
 		for (choice in choices) {
 			stringvalue = choices[choice][0];
-			console.log(defaultValue);
-			console.log(stringvalue);
 			if (defaultValue != null && defaultValue == stringvalue){
 				choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" checked="checked" >' + stringvalue + '</input></br>';
 			}
@@ -53,7 +67,25 @@ function Form() {
 		$('#form').append(choicestring);
 
 		return function(){
-			return $("select").val();
+			return $("input[name="+ name +"]:checked")[0].id;
+		}
+	};
+	
+	this.addChoiceMultiple = function(question, values, selectedValue, sortChoices, sortCallBack) {
+		var choicestring = '';
+		name = question.replace(' ', '');
+		choicestring += '<form name="input" method="get">' + question + '</br>';
+		for (valueindex in values) {
+			value = values[valueindex];
+			if (selectedValue == value){
+				choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + ' checked="checked" >' + value + '</br>';
+			}
+			else choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + '>' + value + '</br>';
+		}
+		$('#form').append(choicestring);
+		
+		return function(){
+			return $("input[name="+ name +"]:checked")[0].id;
 		}
 	}
 	
@@ -76,4 +108,65 @@ function Form() {
 			return $("select").val();
 		}
 	}
-}
+	
+	this.askInteger = function(question, defaultValue) {
+		var contents = '';
+		name = question.replace(' ', '');
+		contents += '<form name="input"  method="get">\
+        ' + question + '<input type="text" id=' + name;
+        if (defaultValue != null) {
+        	contents += ' value=' + defaultValue;
+        }
+        contents += ' />';
+		$('#form').append(contents);
+		$('input').change(function(){
+			checkInteger(name);
+		})
+		
+		return function(){
+			return $('#' + name).val();
+		}
+	}
+	
+	this.askDate = function(question, minValue, maxValue, selectedValue, format) {
+		//#TODO: Implement minValue and maxValue and format
+		//#TODO: Make sure the returned value is in epoch like with flash
+		$('#form').append('<form name="input"  method="get">\
+			<p>' + question + ' <input type="text" id="datepicker" /></p>');
+		$(function() {
+			$("#datepicker").datepicker();
+		});
+		
+		return function() {
+			val = $('#datepicker').val();
+			parts = val.split('/');
+			datevalue = new Date(parts[2], parts[0], parts[1]);
+			epoch = datevalue.getTime();
+			return epoch/1000;
+		}
+	}
+	
+	this.askDateTime = function(question, minValue, maxValue, selectedValue, format) {
+		//#TODO: Implement minValue and maxValue and format
+		//#TODO: Make sure the returned value is in epoch like with flash
+		$('#form').append('<form name="input"  method="get">\
+			<p>' + question + ' <input id="datetimepicker" type="text" /></p>');
+		$(function() {
+			$("#datetimepicker").datetimepicker();
+		});
+		
+		return function(){
+			val = $('#datetimepicker').val();
+			parts = val.split('/');
+			month = parts[0];
+			day = parts[1];
+			subparts = parts[2].split(' ');
+			year = subparts[0];
+			hour = subparts[1].split(':')[0];
+			minute = subparts[1].split(':')[1];
+			datevalue = new Date(year, month, day, hour, minute);
+			return datevalue.getTime()/1000;
+		}
+	}
+	
+ }

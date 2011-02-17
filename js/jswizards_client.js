@@ -74,16 +74,18 @@ function processData(jsondata) {
 	else {
 		this.dataobj = JSON.parse(jsondata);
 	}
+
+	if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard') {
+		closeFloatBox(false);
+		return;
+	}
+
 	if (typeof dataobj.params != 'undefined' && dataobj.params.hasOwnProperty('tabs')) {
 		try{
 			this.tabs = this.dataobj['params']['tabs'];
 		}
 		catch (err) {
 			console.log(err);
-		}
-		if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard') {
-			closeFloatBox(false);
-			return;
 		}
 		console.log(dataobj);
 		$form = $('#form');
@@ -153,7 +155,6 @@ function processData(jsondata) {
 	}
 }
 
-//var this.form = null;
 function processOldStyleData(dataobj) {
 	if (!this.form) {
 		form = new Form();
@@ -171,6 +172,9 @@ function processOldStyleData(dataobj) {
 		if (params['password'] == true) {
 			cb = this.form.askPassword(params['text'], params['value']);
 		}
+		else if (params['multiline'] == true) {
+			cb = this.form.askMultiline(params['text'], params['value']);
+		}
 		else {
 		cb = this.form.askString(params['text'], params['value']);
 		}
@@ -180,6 +184,15 @@ function processOldStyleData(dataobj) {
 	}
 	else if (control == 'option') {
 		cb = this.form.askChoice(params['text'], params['values'], params['value']);
+	}
+	else if (control == 'date') {
+		cb = this.form.askDate(params['text']);
+	}
+	else if (control == 'datetime') {
+		cb = this.form.askDateTime(params['text']);
+	}
+	else if (control == 'number') {
+		cb = this.form.askInteger(params['text'], params['value']);
 	}
 	else alert('control type not implemented yet!!');
 
