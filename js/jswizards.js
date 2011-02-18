@@ -1,3 +1,4 @@
+
 function Form() {
 	
 	 this.createForm = function(){
@@ -17,35 +18,47 @@ function Form() {
 	$("#form").tabs();
 	}
 	
-	function addInput(tabid, type, name, text, value, optional, callbackname) {
-		if (!optional) optional = true;
+	function addInput(tabid, type, name, text, value, validator, optional, callbackname) {
+		if (typeof optional == 'undefined') optional = true;
+		console.log(optional);
 		
 		var required = '';
-		if (optional == true) {
+		if (optional == false) {
 			required = 'required';
 		}
 		var contents = '';
 
-		contents += '<div id=' + tabid + '><form name="input"  method="get">\
-        ' + text + '<input type=' + type + ' id=' + name + ' class=' + required + ' minlength="2"';
+		contents += '<div id=' + tabid + '><form name="input"  method="get">';
+		if (required != '') {
+			contents += text + '*' + '<input type=' + type + ' id=' + name + ' class=' + required + ' minlength="2"';
+		}
+		else {
+			contents += text + '<input type=' + type + ' id=' + name + ' class=' + required + ' minlength="2"';
+		}
         if (value != null) {
         	contents += ' value=' + value;
         }
-        contents += ' /></div>';
-		$('#form')[0].innerHTML += contents;
+        contents += ' /></div><div class="validation_error" id="' + name + '_msg"></div>';
+		$('#form').append(contents);
+		if (validator != null) {
+			$('#' + name).change(function(){
+				validate(validator, name);
+			})
+		}
+
 		if (callbackname != null){
-			$('input').change(function(){
+			$('#' + name).change(function(){
 				processCallback(callbackname);
 			})
 		};
 	};	
-	
-	this.addText = function(tabid, name, text, value, optional, callbackname) {
-		addInput(tabid, 'text', name, text, value, optional, callbackname);
+
+	this.addText = function(tabid, name, text, value, validator, optional, callbackname) {
+		addInput(tabid, 'text', name, text, value, validator, optional, callbackname);
 	}
 
-	this.addPassword = function(tabid, name, text, value, optional, callbackname) {
-		addInput(tabid, 'password', name, text, value, optional, callbackname);
+	this.addPassword = function(tabid, name, text, value, validator, optional, callbackname) {
+		addInput(tabid, 'password', name, text, value, validator, optional, callbackname);
 	}
 	
 	this.addInteger = function(tabid, name, text, value, minvalue, maxvalue, optional, callbackname) {
@@ -172,7 +185,7 @@ function Form() {
 		};
 	}
 	
-	this.addMultiline = function(tabid, name, text, value, optional, callbackname) {
+	this.addMultiline = function(tabid, name, text, value, validator, optional, callbackname) {
 		if (!optional) optional = true;
 		
 		var required = '';
@@ -194,4 +207,5 @@ function Form() {
 			})
 		};
 	}
+
 }

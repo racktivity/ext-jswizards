@@ -1,4 +1,4 @@
-function Form() {
+function OldForm() {
 	
 	 this.createForm = function(){
 		$.floatbox({

@@ -11,6 +11,7 @@ function callAppserver(wizardurl, success, methodName) {
 function start(customerGuid, wizardName, applicationserverIp, success) {
 	this.applicationserverIp = applicationserverIp;
 	this.wizardName = wizardName;
+	this.validated = true;
 	url = "http://"+applicationserverIp+"/appserver/rest/wizard_engine/start?customerGuid="+customerGuid+"&wizardName="+wizardName;
 	//callAppserver(url, success, 'start');
     jQuery.ajax({url: url,
@@ -20,7 +21,6 @@ function start(customerGuid, wizardName, applicationserverIp, success) {
 	    cache: true,
 	    error: function(data, error) { alert(data + error); }
 	});
-
 }
 
 function callResult(sessionId, resultData, applicationserverIp, success) {
@@ -61,12 +61,13 @@ function success(data, status){
                 alert("No data returned!!");
             }
             else {
-            	//alert(data);
+            	console.log(data);
             	processData(data);
             }
         }
 
 function processData(jsondata) {
+	this.endofwizard = false;
 	if (jsondata[0] != '{') {
 			this.sessionId = jsondata[0];
 			this.dataobj = JSON.parse(jsondata[1]);
@@ -75,12 +76,14 @@ function processData(jsondata) {
 		this.dataobj = JSON.parse(jsondata);
 	}
 
-	if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard') {
+	if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard'){
+		this.endofwizard = true;
+	}
+	if (this.endofwizard && this.validated == true) {
 		closeFloatBox(false);
 		return;
 	}
-
-	if (typeof dataobj.params != 'undefined' && dataobj.params.hasOwnProperty('tabs')) {
+	if ('params' in dataobj && dataobj.params.hasOwnProperty('tabs')) {
 		try{
 			this.tabs = this.dataobj['params']['tabs'];
 		}
@@ -111,13 +114,14 @@ function processData(jsondata) {
 				else value = null;
 	
 				if (controltype == 'text') {
+					validator = element['validator'];
 					if (password == true) {
-						form.addPassword(tabid, elementname, elementtext, value, optional, callbackname);
+						form.addPassword(tabid, elementname, elementtext, value, validator, optional, callbackname);
 					}
 					else if (element['multiline'] == true) {
-						form.addMultiline(tabid, elementname, elementtext, value, optional, callbackname);
+						form.addMultiline(tabid, elementname, elementtext, value, validator, optional, callbackname);
 					}
-					else form.addText(tabid, elementname, elementtext, value, optional, callbackname);
+					else form.addText(tabid, elementname, elementtext, value, validator, optional, callbackname);
 				}
 				else if (controltype == 'integer') {
 					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
@@ -150,14 +154,14 @@ function processData(jsondata) {
 		}
 		form.finalize();
 	}
-	else {
+	else if ('params' in dataobj){
 		processOldStyleData(dataobj);
 	}
 }
 
 function processOldStyleData(dataobj) {
 	if (!this.form) {
-		form = new Form();
+		form = new OldForm();
 		form.createForm();
 		this.form = form;
 	}
@@ -213,6 +217,8 @@ function getActiveTab(){
 }
 
 function save(callresult) {
+	console.log('validated:' + this.validated);
+	if (!this.validated) return;
 	if (typeof callresult == 'undefined') callresult = true;
 	var resultdata = new Object();
 	resultdata['activeTab'] = getActiveTab();
@@ -226,6 +232,10 @@ function save(callresult) {
 			id = element['name'];
 			controltype = element['control'];
 			if (controltype == 'text' || controltype == 'password' || controltype == 'number') {
+				validate(element['validator'], id);
+				if (element['optional'] == false) {
+					validateRequired(element['name']);
+				}
 				element['value'] = $('#' + id).val();
 			}
 			else if (controltype == 'option' || controltype == 'optionmultiple') {
@@ -290,6 +300,47 @@ function next() {
 	}
 	callResult(this.sessionId, JSON.stringify(this.dataobj), this.applicationserverIp, success)
 }
+
+function validateRequired(id) {
+	obj = $('#' + id);
+	val = obj.val();
+	if (!val) {
+		doError(obj[0], id + ' is a required field');
+	}
+	else doSuccess(obj[0]);
+}
+
+function validate(validator, id) {
+	if (validator != null) {
+		obj = $('#' + id);
+		val = obj.val();
+		if (val.match(validator) == val){
+			doSuccess(obj[0]);
+		}
+		else {
+			doError(obj[0], 'validation error. ' + id + ' should match regex ' + validator);
+		};
+	}
+}
+
+function doError(obj, message) {
+	console.log('in do error');
+	this.validated = false;
+    //$('#' + obj.id + '_img').html('<img src="images/exclamation.gif" border="0" style="float:left;" />');
+    $('#' + obj.id).addClass("error");
+    $('#' + obj.id + '_msg').html(message);
+    $('#' + obj.id).removeClass("success");
+}
+
+function doSuccess(o) {
+	this.validated = true;
+	console.log('in doSuccess');
+   //$('#' + o.id + '_img').html('<img src="images/accept.gif" border="0" style="float:left;" />');
+   $('#' + o.id).removeClass("error");
+   $('#' + o.id + '_msg').html("");
+   $('#' + o.id).addClass("success");
+}
+
 
 
 
