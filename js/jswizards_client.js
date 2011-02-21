@@ -115,13 +115,15 @@ function processData(jsondata) {
 	
 				if (controltype == 'text') {
 					validator = element['validator'];
+					message = element['message'];
+					helptext = element['helpText'];
 					if (password == true) {
-						form.addPassword(tabid, elementname, elementtext, value, validator, optional, callbackname);
+						form.addPassword(tabid, elementname, elementtext, value, validator, optional, callbackname, message, helptext);
 					}
 					else if (element['multiline'] == true) {
-						form.addMultiline(tabid, elementname, elementtext, value, validator, optional, callbackname);
+						form.addMultiline(tabid, elementname, elementtext, value, validator, optional, callbackname, message, helptext);
 					}
-					else form.addText(tabid, elementname, elementtext, value, validator, optional, callbackname);
+					else form.addText(tabid, elementname, elementtext, value, validator, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'integer') {
 					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
@@ -217,8 +219,8 @@ function getActiveTab(){
 }
 
 function save(callresult) {
-	console.log('validated:' + this.validated);
-	if (!this.validated) return;
+	//console.log('validated:' + this.validated);
+	//if (!this.validated) return;
 	if (typeof callresult == 'undefined') callresult = true;
 	var resultdata = new Object();
 	resultdata['activeTab'] = getActiveTab();
@@ -234,7 +236,7 @@ function save(callresult) {
 			if (controltype == 'text' || controltype == 'password' || controltype == 'number') {
 				validate(element['validator'], id);
 				if (element['optional'] == false) {
-					validateRequired(element['name']);
+					callresult = validateRequired(element['name']);
 				}
 				element['value'] = $('#' + id).val();
 			}
@@ -306,8 +308,10 @@ function validateRequired(id) {
 	val = obj.val();
 	if (!val) {
 		doError(obj[0], id + ' is a required field');
+		return false;
 	}
 	else doSuccess(obj[0]);
+	return true;
 }
 
 function validate(validator, id) {
@@ -324,7 +328,7 @@ function validate(validator, id) {
 }
 
 function doError(obj, message) {
-	console.log('in do error');
+	//console.log('in do error');
 	this.validated = false;
     //$('#' + obj.id + '_img').html('<img src="images/exclamation.gif" border="0" style="float:left;" />');
     $('#' + obj.id).addClass("error");
@@ -334,13 +338,25 @@ function doError(obj, message) {
 
 function doSuccess(o) {
 	this.validated = true;
-	console.log('in doSuccess');
+	//console.log('in doSuccess');
    //$('#' + o.id + '_img').html('<img src="images/accept.gif" border="0" style="float:left;" />');
    $('#' + o.id).removeClass("error");
    $('#' + o.id + '_msg').html("");
    $('#' + o.id).addClass("success");
 }
 
-
+function createBubblePopup(id, message) {
+	$(id).CreateBubblePopup({
+		position : 'top',
+		align	 : 'center',
+		innerHtml: message,
+		innerHtmlStyle: {
+			color:'#FFFFFF', 
+			'text-align':'center'
+		},
+		themeName: 	'all-black',
+		themePath: 	'../libs/jQueryBubblePopup.v2.3.1_2/jquerybubblepopup-theme'
+	});
+}
 
 

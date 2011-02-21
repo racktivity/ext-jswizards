@@ -18,9 +18,8 @@ function Form() {
 	$("#form").tabs();
 	}
 	
-	function addInput(tabid, type, name, text, value, validator, optional, callbackname) {
+	function addInput(tabid, type, name, text, value, validator, optional, callbackname, message, helptext) {
 		if (typeof optional == 'undefined') optional = true;
-		console.log(optional);
 		
 		var required = '';
 		if (optional == false) {
@@ -38,12 +37,26 @@ function Form() {
         if (value != null) {
         	contents += ' value=' + value;
         }
-        contents += ' /></div><div class="validation_error" id="' + name + '_msg"></div>';
+        contents += ' />';
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	console.log(helptext);
+        	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        }
+        contents += '</div><div class="validation_error" id="' + name + '_msg"></div>';
 		$('#form').append(contents);
 		if (validator != null) {
 			$('#' + name).change(function(){
 				validate(validator, name);
 			})
+		}
+		
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
 		}
 
 		if (callbackname != null){
@@ -53,12 +66,12 @@ function Form() {
 		};
 	};	
 
-	this.addText = function(tabid, name, text, value, validator, optional, callbackname) {
-		addInput(tabid, 'text', name, text, value, validator, optional, callbackname);
+	this.addText = function(tabid, name, text, value, validator, optional, callbackname, message, helptext) {
+		addInput(tabid, 'text', name, text, value, validator, optional, callbackname, message, helptext);
 	}
 
-	this.addPassword = function(tabid, name, text, value, validator, optional, callbackname) {
-		addInput(tabid, 'password', name, text, value, validator, optional, callbackname);
+	this.addPassword = function(tabid, name, text, value, validator, optional, callbackname, message, helptext) {
+		addInput(tabid, 'password', name, text, value, validator, optional, callbackname, message, helptext);
 	}
 	
 	this.addInteger = function(tabid, name, text, value, minvalue, maxvalue, optional, callbackname) {
@@ -157,7 +170,6 @@ function Form() {
 	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
-		console.log('heree');
 		$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
 			<p>' + text + ' <input type="text" id="datepicker" /></p></div>';
 		$(function() {
@@ -185,7 +197,7 @@ function Form() {
 		};
 	}
 	
-	this.addMultiline = function(tabid, name, text, value, validator, optional, callbackname) {
+	this.addMultiline = function(tabid, name, text, value, validator, optional, callbackname, message, helptext) {
 		if (!optional) optional = true;
 		
 		var required = '';
