@@ -214,7 +214,7 @@ function Form() {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
 		$('#form').append('<div id=' + tabid + '><form name="input"  method="get">\
-			<p>' + text + ' <input type="text" id="datepicker" /></p>';
+			<p>' + text + ' <input type="text" id="datepicker" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
         	$('#form').append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
@@ -239,8 +239,8 @@ function Form() {
 	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
-		$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
-			<p>' + text + ' <input id="datetimepicker" type="text" /></p>;
+		$('#form').append('<div id=' + tabid + '><form name="input"  method="get">\
+			<p>' + text + ' <input id="datetimepicker" type="text" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
         	$('#form').append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
