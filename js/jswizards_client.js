@@ -112,11 +112,13 @@ function processData(jsondata) {
 				else callbackname = null;
 				if ('value' in element) value = element['value'];
 				else value = null;
+				if ('message' in element) message = element['message'];
+				else message = null;
+				if ('helpText' in element) helptext = element['helpText'];
+				else helptext = null;
 	
 				if (controltype == 'text') {
 					validator = element['validator'];
-					message = element['message'];
-					helptext = element['helpText'];
 					if (password == true) {
 						form.addPassword(tabid, elementname, elementtext, value, validator, optional, callbackname, message, helptext);
 					}
@@ -126,28 +128,28 @@ function processData(jsondata) {
 					else form.addText(tabid, elementname, elementtext, value, validator, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'integer') {
-					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
+					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'option') {
-					form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+					form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'optionmultiple') {
-					form.addChoiceMultiple(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+					form.addChoiceMultiple(tabid, elementname, elementtext, element['values'], value, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'label') {
 					form.message(tabid, elementname, elementtext, element['bold'], element['multiline']);
 				}
 				else if (controltype == 'dropdown') {
-					form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname);
+					form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'number') {
-					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname);
+					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'date') {
-					form.addDate(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
+					form.addDate(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname, message, helptext);
 				}
 				else if (controltype == 'datetime') {
-					form.addDateTime(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname);
+					form.addDateTime(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname, message, helptext);
 				}
 				else {
 					alert('control type not defined or not implemented yet !!');
@@ -219,7 +221,6 @@ function getActiveTab(){
 }
 
 function save(callresult) {
-	//console.log('validated:' + this.validated);
 	//if (!this.validated) return;
 	if (typeof callresult == 'undefined') callresult = true;
 	var resultdata = new Object();
@@ -338,8 +339,6 @@ function doError(obj, message) {
 
 function doSuccess(o) {
 	this.validated = true;
-	//console.log('in doSuccess');
-   //$('#' + o.id + '_img').html('<img src="images/accept.gif" border="0" style="float:left;" />');
    $('#' + o.id).removeClass("error");
    $('#' + o.id + '_msg').html("");
    $('#' + o.id).addClass("success");

@@ -40,7 +40,6 @@ function Form() {
         contents += ' />';
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
-        	console.log(helptext);
         	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
         contents += '</div><div class="validation_error" id="' + name + '_msg"></div>';
@@ -74,7 +73,7 @@ function Form() {
 		addInput(tabid, 'password', name, text, value, validator, optional, callbackname, message, helptext);
 	}
 	
-	this.addInteger = function(tabid, name, text, value, minvalue, maxvalue, optional, callbackname) {
+	this.addInteger = function(tabid, name, text, value, minvalue, maxvalue, optional, callbackname, message, helptext) {
 		if (!optional) optional = true;
 		
 		var required = '';
@@ -88,17 +87,28 @@ function Form() {
         if (value != null) {
         	contents += ' value=' + value;
         }
-        contents += ' /></div>';
-		$('#form')[0].innerHTML += contents;
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        }
+        contents += '</div>';
+		$('#form').append(contents);
 		$('input').change(function(){
 			checkInteger(name);
 			if (callbackname != null){
 				processCallback(callbackname);
 			}
 		})
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
 	}
 	
-	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname) {
+	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
 		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
 		for (value in values) {
@@ -108,15 +118,25 @@ function Form() {
 			}
 			else choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" >'+ stringvalue + '</input></br>';
 		}
-		$('#form')[0].innerHTML += choicestring + '</div>';
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	choicestring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        }
+		$('#form').append(choicestring + '</div>');
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);
 			})
 		};
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
 	}
 	
-	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname) {
+	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
 		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
 		for (valueindex in values) {
@@ -126,12 +146,22 @@ function Form() {
 			}
 			else choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + '>' + value + '</br>';
 		}
-		$('#form')[0].innerHTML += choicestring + '</div>';
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	choicestring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        }
+		$('#form').append(choicestring + '</div>');
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);
 			})
 		};
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
 	}
 	
 	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname) {
@@ -144,12 +174,25 @@ function Form() {
 			}
 			else htmlstring += '<option value=' + valueindex + '>' + value + '</option>';
 		}
-		$('#form')[0].innerHTML += '</select>' + htmlstring + '</div>';
+		htmlstring += '</select>';
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	htmlstring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        }
+		$('#form').append(htmlstring + '</div>');
 		if (callbackname != null){
 			$('select').change(function(){
 				processCallback(callbackname);
 			})
 		};
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
+
 	}
 
 	this.message = function(tabid, name, text, bold, multiline) {
@@ -167,11 +210,16 @@ function Form() {
 		}
 	}
 
-	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname) {
+	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
-		$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
-			<p>' + text + ' <input type="text" id="datepicker" /></p></div>';
+		$('#form').append('<div id=' + tabid + '><form name="input"  method="get">\
+			<p>' + text + ' <input type="text" id="datepicker" /></p>';
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	$('#form').append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        }
+        $('#form').append('</div>');
 		$(function() {
 			$("#datepicker").datepicker();
 		});
@@ -180,13 +228,24 @@ function Form() {
 				processCallback(callbackname);
 			})
 		};
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
 	};
 	
-	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname) {
+	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
 		$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
-			<p>' + text + ' <input id="datetimepicker" type="text" /></p></div>';
+			<p>' + text + ' <input id="datetimepicker" type="text" /></p>;
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	$('#form').append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        }
+        $('#form').append('</div>');
 		$(function() {
 			$("#datetimepicker").datetimepicker();
 		});
@@ -195,6 +254,14 @@ function Form() {
 				processCallback(callbackname);
 			})
 		};
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
+
 	}
 	
 	this.addMultiline = function(tabid, name, text, value, validator, optional, callbackname, message, helptext) {
@@ -211,13 +278,24 @@ function Form() {
         if (value != null) {
         	contents += ' value=' + value;
         }
-        contents += ' ></textarea></div>';
-		$('#form')[0].innerHTML += contents;
+        contents += ' ></textarea>';
+        if (helptext != null) {
+        	id = name + helptext.replace(' ', '');
+        	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        }
+        contents += '</div>';
+		$('#form').append(contents);
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);
 			})
 		};
+		if (message != null) {
+			createBubblePopup('#' + name, message);
+		}
+		if (helptext != null) {
+			createBubblePopup('.formInfo', helptext);
+		}
 	}
 
 }
