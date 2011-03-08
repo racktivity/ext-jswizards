@@ -354,7 +354,7 @@ function createBubblePopup(id, message) {
 			'text-align':'center'
 		},
 		themeName: 	'all-black',
-		themePath: 	'../libs/jQueryBubblePopup.v2.3.1_2/jquerybubblepopup-theme'
+		themePath: 	'/js/libs/jQueryBubblePopup.v2.3.1_2/jquerybubblepopup-theme'
 	});
 }
 

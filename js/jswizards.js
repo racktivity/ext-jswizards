@@ -243,7 +243,7 @@ function Form() {
 			<p>' + text + ' <input id="datetimepicker" type="text" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
-        	$('#form').append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        	$('#form').append('<span class="formInfo" id=' + id + '><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
         }
         $('#form').append('</div>');
 		$(function() {
