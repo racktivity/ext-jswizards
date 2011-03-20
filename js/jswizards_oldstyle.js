@@ -167,6 +167,55 @@ function OldForm() {
 			datevalue = new Date(year, month, day, hour, minute);
 			return datevalue.getTime()/1000;
 		}
+	};
+
+	this.showMessageBox = function(message, title, msgboxButtons, msgboxIcon, defaultButton) {
+		var result = null;
+		var cb = function(){
+			return result;
+		};
+		if (msgboxButtons == 'OKCancel') {
+			buttons = ['Ok', 'Cancel'];
+		}
+		else if (msgboxButtons == 'YesNo') {
+			buttons = ['Yes', 'No'];
+		}
+		else if (msgboxButtons == 'YesNoCancel') {
+			buttons = ['Yes', 'No', 'Cancel'];
+		}
+		else buttons = ['Ok'];
+		
+		buttonoptions = new Array(buttons.length);
+		$.each(buttons, function(index, button) {
+			buttonoptions[index] = {	
+				text: button,
+				click: function() {
+					result = button;
+					$(this).dialog("close");}
+			};
+		})
+	
+		$('#form').append('<div id="dialog" />');	
+		$("#dialog").dialog({
+			buttons: buttonoptions,
+			show: 'slide',
+			title: title,
+			
+			});
+		iconpaths = {
+			'Information': '../icons/information.png',
+			'Error': '../icons/error.png',
+			'Warning': '../icons/warning.png',
+			'Question': '../icons/question.png'
+		}
+		$('#dialog').append("<img src='" + iconpaths[msgboxIcon] + "' align='left'/>");
+		$('#dialog').append(message);
+		$.each($('button', '#dialog'), function(index, buttontag){
+			if (buttontag.textContent == defaultButton) {
+				buttontag.focus();
+			}
+		})
+		return cb;
 	}
 	
  }

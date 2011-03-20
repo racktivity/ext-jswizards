@@ -202,6 +202,9 @@ function processOldStyleData(dataobj) {
 	else if (control == 'number') {
 		cb = this.form.askInteger(params['text'], params['value']);
 	}
+	else if (control == 'messagebox') {
+		cb = this.form.showMessageBox(params['message'], params['title'], params['msgboxButtons'], params['msgboxIcon'], params['defaultButton'])
+	}
 	else alert('control type not implemented yet!!');
 
 	if (cb != null) {
