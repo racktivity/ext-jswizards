@@ -170,6 +170,7 @@ function OldForm() {
 	};
 
 	this.showMessageBox = function(message, title, msgboxButtons, msgboxIcon, defaultButton) {
+		//#TODO: keep focus on the default button, currently it loses focus immidiately after loading
 		var result = null;
 		var cb = function(){
 			return result;
