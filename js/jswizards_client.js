@@ -8,11 +8,12 @@ function callAppserver(wizardurl, success, methodName) {
           });
     };
     
-function start(customerGuid, wizardName, applicationserverIp, success) {
+function start(appname, domainName, wizardName, applicationserverIp, success) {
+        this.appname = appname;
 	this.applicationserverIp = applicationserverIp;
 	this.wizardName = wizardName;
 	this.validated = true;
-	url = "http://"+applicationserverIp+"/appserver/rest/wizard_engine/start?customerGuid="+customerGuid+"&wizardName="+wizardName;
+	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/start?wizardName="+wizardName + "&domainName=" + domainName;
 	//callAppserver(url, success, 'start');
     jQuery.ajax({url: url,
 	    dataType: 'jsonp',
@@ -23,8 +24,8 @@ function start(customerGuid, wizardName, applicationserverIp, success) {
 	});
 }
 
-function callResult(sessionId, resultData, applicationserverIp, success) {
-	url = "http://"+applicationserverIp+"/appserver/rest/wizard_engine/result?sessionId="+sessionId+"&result="+resultData;
+function callResult(appname, sessionId, resultData, applicationserverIp, success) {
+	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/result?sessionId="+sessionId+"&result="+resultData;
 	//callAppserver(url, success, 'result');
     jQuery.ajax({url: url,
 	    dataType: 'jsonp',
@@ -35,8 +36,8 @@ function callResult(sessionId, resultData, applicationserverIp, success) {
 	});
 }
 
-function callback(wizardName, methodName, formData, sessionId, applicationserverIp){
-	url = "http://"+applicationserverIp+"/appserver/rest/wizard_engine/callback?SessionId="+sessionId+"&wizardName="+wizardName
+function callback(appname, wizardName, methodName, formData, sessionId, applicationserverIp){
+	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/callback?SessionId="+sessionId+"&wizardName="+wizardName
 	+"&methodName="+methodName+"&formData="+formData;
     jQuery.ajax({url: url,
 	    dataType: 'jsonp',
@@ -47,8 +48,8 @@ function callback(wizardName, methodName, formData, sessionId, applicationserver
 	});
 }
 
-function stop(sessionId, applicationserverIp) {
-	url = "http://" + applicationserverIp + "/appserver/rest/wizard_engine/stop?sessionId=" + sessionId;
+function stop(appname, sessionId, applicationserverIp) {
+	url = "http://" + applicationserverIp + "/" + appname + "/appserver/rest/ui/wizard/stop?sessionId=" + sessionId;
     jQuery.ajax({url: url,
 	    dataType: 'jsonp',
 	    jsonp: 'jsonp_callback',
@@ -214,7 +215,7 @@ function processOldStyleData(dataobj) {
 
 function processCallback(callbackname) {
 	resultdata = save(false);
-	callback(this.wizardName, callbackname, JSON.stringify(resultdata), this.sessionId, this.applicationserverIp)
+	callback(this.appname, this.wizardName, callbackname, JSON.stringify(resultdata), this.sessionId, this.applicationserverIp)
 }
 
 function getActiveTab(){
@@ -279,7 +280,7 @@ function save(callresult) {
 
 function closeFloatBox(callstop){
 	if (callstop) {
-		stop(this.sessionId, this.applicationserverIp);
+		stop(this.appname, this.sessionId, this.applicationserverIp);
 	}
 	$(".close-floatbox").click();
 }
@@ -304,7 +305,7 @@ function next() {
 	if (this.dataobj.hasOwnProperty('callback')){
 		this.dataobj['result'] = this.dataobj['callback']();
 	}
-	callResult(this.sessionId, JSON.stringify(this.dataobj), this.applicationserverIp, success)
+	callResult(this.appname, this.sessionId, JSON.stringify(this.dataobj), this.applicationserverIp, success)
 }
 
 function validateRequired(id) {
