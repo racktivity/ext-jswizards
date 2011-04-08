@@ -8,12 +8,13 @@ function callAppserver(wizardurl, success, methodName) {
           });
     };
     
-function start(appname, domainName, wizardName, applicationserverIp, success) {
+function start(appname, domainName, wizardName, applicationserverIp, extra, success) {
         this.appname = appname;
 	this.applicationserverIp = applicationserverIp;
 	this.wizardName = wizardName;
 	this.validated = true;
-	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/start?wizardName="+wizardName + "&domainName=" + domainName;
+	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/start?wizardName="+wizardName + 
+           "&domainName=" + domainName + "&extra=" + extra;
 	//callAppserver(url, success, 'start');
     jQuery.ajax({url: url,
 	    dataType: 'jsonp',
