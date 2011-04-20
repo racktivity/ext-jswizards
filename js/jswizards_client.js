@@ -331,7 +331,7 @@ function validate(validator, id) {
 			}
 		}
 		else {
-			doError(obj[0], 'validation error test. ' + id + ' should match regex ' + validator + ' ' + val);
+			doError(obj[0], 'validation error. ' + id + ' should match regex ' + validator + ' ' + val);
 		};
 	}
 }
