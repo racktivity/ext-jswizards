@@ -324,11 +324,14 @@ function validate(validator, id) {
 	if (validator != null) {
 		obj = $('#' + id);
 		val = obj.val();
-		if (val.match(validator) == val){
-			doSuccess(obj[0]);
+		var result = val.match(validator);
+                if (result) {
+			if (result[0] == val){
+				doSuccess(obj[0]);
+			}
 		}
 		else {
-			doError(obj[0], 'validation error. ' + id + ' should match regex ' + validator);
+			doError(obj[0], 'validation error test. ' + id + ' should match regex ' + validator + ' ' + val);
 		};
 	}
 }
