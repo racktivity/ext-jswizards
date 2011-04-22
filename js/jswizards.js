@@ -1,24 +1,29 @@
 
 function Form() {
+
+    var floatform;
 	
 	 this.createForm = function(){
-		$.floatbox({
-		        content: '<div id="form"><ul></ul></div>\
+        floatform = $('<div id="floatform"><ul></ul></div>\
 		        <input type="submit" value="Save" onClick="save()"/>\
-		        <input type="button" name="cancel" value="Cancel" onclick="closeFloatBox()"/>',
-		        fade: true
-		    });
+		        <input type="button" name="cancel" value="Cancel" onclick="closeFloatBox()"/>');
 	 }
 	
 	this.addTab = function (name, tabid){
-		$('#form > ul' )[0].innerHTML += "<li><a href='#"+ tabid +"'><span>" + name + "</span></a></li>";
+		floatform.find('ul')[0].innerHTML += "<li><a href='#"+ tabid +"'><span>" + name + "</span></a></li>";
 	}
 	
 	this.finalize = function(){
-	$("#form").tabs();
+
+	floatform.tabs();
+		$.floatbox({
+		        content: floatform,
+		        fade: true,
+		    });
+
 	}
 	
-	function addInput(tabid, type, name, text, value, validator, optional, callbackname, message, helptext) {
+	var addInput = function(tabid, type, name, text, value, validator, optional, callbackname, message, helptext) {
 		if (typeof optional == 'undefined') optional = true;
 		
 		var required = '';
@@ -43,7 +48,7 @@ function Form() {
         	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
         contents += '</div><div class="validation_error" id="' + name + '_msg"></div>';
-		$('#form').append(contents);
+		floatform.append(contents);
 		if (validator != null) {
 			$('#' + name).change(function(){
 				validate(validator, name);
@@ -92,7 +97,7 @@ function Form() {
         	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
         contents += '</div>';
-		$('#form').append(contents);
+		floatform.append(contents);
 		$('input').change(function(){
 			checkInteger(name);
 			if (callbackname != null){
@@ -122,7 +127,7 @@ function Form() {
         	id = name + helptext.replace(' ', '');
         	choicestring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
-		$('#form').append(choicestring + '</div>');
+		floatform.append(choicestring + '</div>');
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);
@@ -150,7 +155,7 @@ function Form() {
         	id = name + helptext.replace(' ', '');
         	choicestring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
-		$('#form').append(choicestring + '</div>');
+		floatform.append(choicestring + '</div>');
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);
@@ -179,7 +184,7 @@ function Form() {
         	id = name + helptext.replace(' ', '');
         	htmlstring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
-		$('#form').append(htmlstring + '</div>');
+		floatform.append(htmlstring + '</div>');
 		if (callbackname != null){
 			$('select').change(function(){
 				processCallback(callbackname);
@@ -201,25 +206,25 @@ function Form() {
 		if (bold == true) text = text.bold();
 		
 		if (multiline == true) {
-			$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
+			floatform[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
 		<textarea id=' + name + ' TextMode="multiLine">' + text + '</textarea>';
 		}
 		else {
-			$('#form')[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
+			floatform[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
 			<div id=' + name + '>' + text + '</div>';
 		}
 	}
 
 	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
-		//#TODO: Implement minValue and maxValue and format
+		//#TODO: Implement minValue and maxValue and floatformat
 		//#TODO: Make sure the returned value is in epoch like with flash
-		$('#form').append('<div id=' + tabid + '><form name="input"  method="get">\
+		floatform.append('<div id=' + tabid + '><form name="input"  method="get">\
 			<p>' + text + ' <input type="text" id="datepicker" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
-        	$('#form').append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        	floatform.append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
         }
-        $('#form').append('</div>');
+        floatform.append('</div>');
 		$(function() {
 			$("#datepicker").datepicker();
 		});
@@ -239,13 +244,13 @@ function Form() {
 	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
-		$('#form').append('<div id=' + tabid + '><form name="input"  method="get">\
+		floatform.append('<div id=' + tabid + '><form name="input"  method="get">\
 			<p>' + text + ' <input id="datetimepicker" type="text" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
-        	$('#form').append('<span class="formInfo" id=' + id + '><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        	floatform.append('<span class="formInfo" id=' + id + '><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
         }
-        $('#form').append('</div>');
+        floatform.append('</div>');
 		$(function() {
 			$("#datetimepicker").datetimepicker();
 		});
@@ -284,7 +289,7 @@ function Form() {
         	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
         }
         contents += '</div>';
-		$('#form').append(contents);
+		floatform.append(contents);
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);

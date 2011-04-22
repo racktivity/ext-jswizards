@@ -73,8 +73,6 @@ function processData(jsondata) {
 			console.log(err);
 		}
 		console.log(dataobj);
-		$form = $('#form');
-		$form.replaceWith($form.html());
 	
 		form = new Form();
 		form.createForm();
@@ -200,7 +198,7 @@ function processCallback(callbackname) {
 }
 
 function getActiveTab(){
-	var tabs = $('#form').tabs();
+	var tabs = $('#floatform').tabs();
 	var selected = tabs.tabs('option', 'selected');
 	return this.tabs[selected]['name'];
 }
