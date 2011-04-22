@@ -1,4 +1,4 @@
-function callAppserver(wizardurl, success, methodName) {
+var callAppserver = function(wizardurl, success) {
           jQuery.ajax({url: wizardurl,
             dataType: 'jsonp',
             success: success,
@@ -8,57 +8,34 @@ function callAppserver(wizardurl, success, methodName) {
           });
     };
     
-function start(appname, domainName, wizardName, applicationserverIp, extra, success) {
-        this.appname = appname;
+var start = function(appname, domainName, wizardName, applicationserverIp, extra, success) {
+    this.appname = appname;
 	this.applicationserverIp = applicationserverIp;
+    this.baseUrl = "http://" + applicationserverIp + "/" + appname + "/appserver/rest/ui/wizard/";
 	this.wizardName = wizardName;
 	this.validated = true;
-	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/start?wizardName="+wizardName + 
+	url = this.baseUrl + "start?wizardName="+wizardName + 
            "&domainName=" + domainName + "&extra=" + extra;
-	//callAppserver(url, success, 'start');
-    jQuery.ajax({url: url,
-	    dataType: 'jsonp',
-	    success: success,
-	    jsonp: 'jsonp_callback',
-	    cache: true,
-	    error: function(data, error) { alert(data + error); }
-	});
+	callAppserver(url, success);
 }
 
-function callResult(appname, sessionId, resultData, applicationserverIp, success) {
-	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/result?sessionId="+sessionId+"&result="+resultData;
-	//callAppserver(url, success, 'result');
-    jQuery.ajax({url: url,
-	    dataType: 'jsonp',
-	    success: success,
-	    jsonp: 'jsonp_callback',
-	    cache: true,
-	    error: function(data, error) { alert(data + error); }
-	});
+var callResult = function(sessionId, resultData, success) {
+	url = this.baseUrl + "result?sessionId="+sessionId+"&result="+resultData;
+	callAppserver(url, success);
 }
 
-function callback(appname, wizardName, methodName, formData, sessionId, applicationserverIp){
-	url = "http://"+applicationserverIp+"/" + appname + "/appserver/rest/ui/wizard/callback?SessionId="+sessionId+"&wizardName="+wizardName
+var callback = function(wizardName, methodName, formData, sessionId){
+	url = this.baseUrl + "callback?SessionId="+sessionId+"&wizardName="+wizardName
 	+"&methodName="+methodName+"&formData="+formData;
-    jQuery.ajax({url: url,
-	    dataType: 'jsonp',
-	    success: success,
-	    jsonp: 'jsonp_callback',
-	    cache: true,
-	    error: function(data, error) { alert(data + error); }
-	});
+    callAppserver(url, success);
 }
 
-function stop(appname, sessionId, applicationserverIp) {
-	url = "http://" + applicationserverIp + "/" + appname + "/appserver/rest/ui/wizard/stop?sessionId=" + sessionId;
-    jQuery.ajax({url: url,
-	    dataType: 'jsonp',
-	    jsonp: 'jsonp_callback',
-	    cache: true,
-	});
+var stop = function(sessionId) {
+	url = this.baseUrl + "stop?sessionId=" + sessionId;
+    callAppserver(url, function(){});
 }
 
-function success(data, status){
+var success = function(data, status){
             if (!data){
                 alert("No data returned!!");
             }
@@ -70,6 +47,9 @@ function success(data, status){
 
 function processData(jsondata) {
 	this.endofwizard = false;
+    if (jsondata.error){
+        alert("Error happened" + jsondata.message);
+    }
 	if (jsondata[0] != '{') {
 			this.sessionId = jsondata[0];
 			this.dataobj = JSON.parse(jsondata[1]);
@@ -216,7 +196,7 @@ function processOldStyleData(dataobj) {
 
 function processCallback(callbackname) {
 	resultdata = save(false);
-	callback(this.appname, this.wizardName, callbackname, JSON.stringify(resultdata), this.sessionId, this.applicationserverIp)
+	callback(this.wizardName, callbackname, JSON.stringify(resultdata), this.sessionId)
 }
 
 function getActiveTab(){
@@ -274,14 +254,14 @@ function save(callresult) {
 		}
 	}
 	if (callresult == true){
-		callResult(this.sessionId, JSON.stringify(resultdata), this.applicationserverIp, success)
+		callResult(this.sessionId, JSON.stringify(resultdata), success)
 	}
 	return resultdata;
 };
 
 function closeFloatBox(callstop){
 	if (callstop) {
-		stop(this.appname, this.sessionId, this.applicationserverIp);
+		stop(this.sessionId);
 	}
 	$(".close-floatbox").click();
 }
@@ -306,7 +286,7 @@ function next() {
 	if (this.dataobj.hasOwnProperty('callback')){
 		this.dataobj['result'] = this.dataobj['callback']();
 	}
-	callResult(this.appname, this.sessionId, JSON.stringify(this.dataobj), this.applicationserverIp, success)
+	callResult(this.sessionId, JSON.stringify(this.dataobj), success)
 }
 
 function validateRequired(id) {
@@ -362,7 +342,7 @@ function createBubblePopup(id, message) {
 			'text-align':'center'
 		},
 		themeName: 	'all-black',
-		themePath: 	'/js/libs/jQueryBubblePopup.v2.3.1_2/jquerybubblepopup-theme'
+		themePath: 	'/static/jswizards/libs/jQueryBubblePopup.v2.3.1_2/jquerybubblepopup-theme'
 	});
 }
 
