@@ -1,27 +1,39 @@
 
-function Form() {
+function JsWizardsForm() {
 
-    var floatform;
+    var floatform = null;
+    var floatbox = null;
 	
-	 this.createForm = function(){
+	this.createForm = function(){
         floatform = $('<div id="floatform"><ul></ul></div>\
-		        <input type="submit" value="Save" onClick="save()"/>\
-		        <input type="button" name="cancel" value="Cancel" onclick="closeFloatBox()"/>');
-	 }
+		        <input type="submit" value="Save" onClick="jswizards.save()"/>\
+		        <input type="button" name="cancel" value="Cancel" onclick="jswizards.closeFloatBox()"/>');
+	}
 	
 	this.addTab = function (name, tabid){
 		floatform.find('ul')[0].innerHTML += "<li><a href='#"+ tabid +"'><span>" + name + "</span></a></li>";
 	}
 	
 	this.finalize = function(){
-
-	floatform.tabs();
+	    floatform.tabs();
 		$.floatbox({
 		        content: floatform,
+                buttonPosition: "none",
 		        fade: true,
 		    });
 
 	}
+
+    this.close = function(){
+        var settings = { bg : "floatbox-background",
+                         box : "floatbox-box"};
+        $("#" + settings.box).fadeOut(200, function () {
+            $("#" + settings.bg).fadeOut(200, function () {
+                $("#" + settings.box).remove();
+                $("#" + settings.bg).remove();
+           });
+        });
+    }
 	
 	var addInput = function(tabid, type, name, text, value, validator, optional, callbackname, message, helptext) {
 		if (typeof optional == 'undefined') optional = true;
@@ -32,12 +44,12 @@ function Form() {
 		}
 		var contents = '';
 
-		contents += '<div id=' + tabid + '><form name="input"  method="get">';
+		contents += '<div id=' + tabid + "_" + name +'>';
 		if (required != '') {
-			contents += text + '*' + '<input type=' + type + ' id=' + name + ' class=' + required + ' minlength="2"';
+			contents += text + '*' + '<input type=' + type + ' id=' + name + ' class="' + required + '" minlength="2"';
 		}
 		else {
-			contents += text + '<input type=' + type + ' id=' + name + ' class=' + required + ' minlength="2"';
+			contents += text + '<input type=' + type + ' id=' + name + ' minlength="2"';
 		}
         if (value != null) {
         	contents += ' value=' + value;
@@ -60,7 +72,7 @@ function Form() {
 		}
 		
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 
 		if (callbackname != null){
