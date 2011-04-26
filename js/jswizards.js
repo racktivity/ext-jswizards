@@ -5,9 +5,7 @@ function JsWizardsForm() {
     var floatbox = null;
 	
 	this.createForm = function(){
-        floatform = $('<div id="floatform"><ul></ul></div>\
-		        <input type="submit" value="Save" onClick="jswizards.save()"/>\
-		        <input type="button" name="cancel" value="Cancel" onclick="jswizards.closeFloatBox()"/>');
+        floatform = $('<div id="floatform"><ul></ul></div>');
 	}
 	
 	this.addTab = function (name, tabid){
@@ -16,6 +14,9 @@ function JsWizardsForm() {
 	
 	this.finalize = function(){
 	    floatform.tabs();
+        floatform.append('<input type="button" value="Save" onClick="jswizards.save()"/>\
+		        <input type="button" name="cancel" value="Cancel" onclick="jswizards.closeFloatBox()"/>');
+
 		$.floatbox({
 		        content: floatform,
                 buttonPosition: "none",
@@ -46,10 +47,10 @@ function JsWizardsForm() {
 
 		contents += '<div id=' + tabid + "_" + name +'>';
 		if (required != '') {
-			contents += text + '*' + '<input type=' + type + ' id=' + name + ' class="' + required + '" minlength="2"';
+			contents += '<label>' + text + '</label>' +'*' + '<input type=' + type + ' id=' + name + ' class="' + required + '" minlength="2"';
 		}
 		else {
-			contents += text + '<input type=' + type + ' id=' + name + ' minlength="2"';
+			contents += '<label>' + text + '</label>' +'<input type=' + type + ' id=' + name + ' minlength="2"';
 		}
         if (value != null) {
         	contents += ' value=' + value;
@@ -68,7 +69,7 @@ function JsWizardsForm() {
 		}
 		
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		
 		if (helptext != null) {
