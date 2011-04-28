@@ -203,7 +203,7 @@ var processOldStyleData = function(dataobj) {
 
 var processCallback = function(callbackname) {
 	resultdata = save(false);
-	callback(this.wizardName, callbackname, JSON.stringify(resultdata), session)
+	callback(this.wizardName, callbackname, $.toJSON(resultdata), session)
 }
 
 var getActiveTab = function(){
@@ -223,10 +223,10 @@ this.save = function(callresult) {
 		elements = tabs[tabindex]['elements'];
 		tabid = tabs[tabindex]['name'];
 		for (elementindex in tabs[tabindex]['elements']) {
-			element = elements[elementindex];
-			id = element['name'];
-			controltype = element['control'];
-			if (controltype == 'text' || controltype == 'password' || controltype == 'number') {
+			var element = elements[elementindex];
+			var id = element['name'];
+			var controltype = element['control'];
+			if (controltype == 'text' || controltype == 'password' || controltype == 'number' || controltype == 'dropdown') {
 				validate(element['validator'], id);
 				if (element['optional'] == false) {
 					callresult = validateRequired(element['name']);
@@ -236,18 +236,15 @@ this.save = function(callresult) {
 			else if (controltype == 'option' || controltype == 'optionmultiple') {
 				element['value'] = $("input[name="+ id +"]:checked")[0].id;
 			}
-			else if (controltype == 'dropdown') {
-				element['value'] = $("select").val();
-			}
 			else if (controltype == 'date') {
-				val = $('#datepicker').val();
+				val = $('#'+id).val();
 				parts = val.split('/');
 				datevalue = new Date(parts[2], parts[0], parts[1]);
 				epoch = datevalue.getTime();
 				element['value'] = epoch/1000;
 			}
 			else if (controltype == 'datetime') {
-				val = $('#datetimepicker').val();
+				val = $('#' + id).val();
 				parts = val.split('/');
 				month = parts[0];
 				day = parts[1];
@@ -261,7 +258,7 @@ this.save = function(callresult) {
 		}
 	}
 	if (callresult == true){
-		callResult(JSON.stringify(resultdata), success)
+		callResult($.toJSON(resultdata), success)
 	}
 	return resultdata;
 }
@@ -293,7 +290,7 @@ var next = function() {
 	if (dataobj.hasOwnProperty('callback')){
 		dataobj['result'] = dataobj['callback']();
 	}
-	callResult(JSON.stringify(dataobj), success)
+	callResult($.toJSON(dataobj), success)
 }
 
 var validateRequired = function(id) {

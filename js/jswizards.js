@@ -22,6 +22,8 @@ function JsWizardsForm() {
                 buttonPosition: "none",
 		        fade: true,
 		    });
+        $("[name='input_datetime']").datetimepicker();
+        $("[name='input_date']").datepicker();
 
 	}
 
@@ -63,7 +65,7 @@ function JsWizardsForm() {
         contents += '</div><div class="validation_error" id="' + name + '_msg"></div>';
 		floatform.append(contents);
 		if (validator != null) {
-			$('#' + name).change(function(){
+			floatform.select('#' + name).change(function(){
 				validate(validator, name);
 			})
 		}
@@ -100,8 +102,8 @@ function JsWizardsForm() {
 		}
 		var contents = '';
 
-		contents += '<div id=' + tabid + '><form name="input"  method="get">\
-        ' + text + '<input type="text" id=' + name;
+		contents += '<div id=' + tabid + '><label>'
+         + text + '</label><input type="text" id=' + name;
         if (value != null) {
         	contents += ' value=' + value;
         }
@@ -118,17 +120,17 @@ function JsWizardsForm() {
 			}
 		})
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 	}
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
-		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
+		choicestring += '<div id=' + tabid + '><label>' + text + '</label></br>';
 		for (value in values) {
 			stringvalue = values[value][0];
 			if (selectedValue != null && selectedValue == value){
@@ -147,16 +149,16 @@ function JsWizardsForm() {
 			})
 		};
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 	}
 	
 	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
-		choicestring += '<div id=' + tabid + '><form name="input" method="get">' + text + '</br>';
+		choicestring += '<div id=' + tabid + '><label>' + text + '</label></br>';
 		for (valueindex in values) {
 			value = values[valueindex];
 			if (selectedValue == value){
@@ -175,16 +177,16 @@ function JsWizardsForm() {
 			})
 		};
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 	}
 	
-	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname) {
+	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var htmlstring = '';
-		htmlstring += '<div id=' + tabid + '><form name="input" method="get">' + text + '<select id="' + name + '">';
+		htmlstring += '<div id=' + tabid + '><label>' + text + '</label><select id="' + name + '">';
 		for (valueindex in values) {
 			value = values[valueindex];
 			if (selectedValue == value) {
@@ -204,11 +206,11 @@ function JsWizardsForm() {
 			})
 		};
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 
 	}
@@ -219,11 +221,11 @@ function JsWizardsForm() {
 		if (bold == true) text = text.bold();
 		
 		if (multiline == true) {
-			floatform[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
+			floatform[0].innerHTML += '<div id=' + tabid + '>\
 		<textarea id=' + name + ' TextMode="multiLine">' + text + '</textarea>';
 		}
 		else {
-			floatform[0].innerHTML += '<div id=' + tabid + '><form name="input"  method="get">\
+			floatform[0].innerHTML += '<div id=' + tabid + '>\
 			<div id=' + name + '>' + text + '</div>';
 		}
 	}
@@ -231,53 +233,45 @@ function JsWizardsForm() {
 	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and floatformat
 		//#TODO: Make sure the returned value is in epoch like with flash
-		floatform.append('<div id=' + tabid + '><form name="input"  method="get">\
-			<p>' + text + ' <input type="text" id="datepicker" /></p>');
+		floatform.append('<div id=' + tabid + '></label>' + text + '</label><p> <input type="text" name="input_date" id="' + name + '" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
         	floatform.append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
         }
         floatform.append('</div>');
-		$(function() {
-			$("#datepicker").datepicker();
-		});
 		if (callbackname != null){
 			$('input').change(function(){
 				processCallback(callbackname);
 			})
 		};
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 	};
 	
 	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
-		floatform.append('<div id=' + tabid + '><form name="input"  method="get">\
-			<p>' + text + ' <input id="datetimepicker" type="text" /></p>');
+		floatform.append('<div id=' + tabid + '><label>' + text + '</label><p><input name="input_datetime" id="' + name + '" type="text" /></p>');
         if (helptext != null) {
         	id = name + helptext.replace(' ', '');
         	floatform.append('<span class="formInfo" id=' + id + '><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
         }
         floatform.append('</div>');
-		$(function() {
-			$("#datetimepicker").datetimepicker();
-		});
 		if (callbackname != null){
-			$('input').change(function(){
+			floatform.select('#'+ name).change(function(){
 				processCallback(callbackname);
 			})
 		};
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 
 	}
@@ -291,8 +285,7 @@ function JsWizardsForm() {
 		}
 		var contents = '';
 
-		contents += '<div id=' + tabid + '><form name="input"  method="get">\
-        ' + text + '<textarea id=' + name + ' class=' + required;
+		contents += '<div id=' + tabid + '><label>' + text + '</label><textarea id=' + name + ' class=' + required;
         if (value != null) {
         	contents += ' value=' + value;
         }
@@ -309,10 +302,10 @@ function JsWizardsForm() {
 			})
 		};
 		if (message != null) {
-			createBubblePopup('#' + name, message);
+			jswizards.createBubblePopup('#' + name, message);
 		}
 		if (helptext != null) {
-			createBubblePopup('.formInfo', helptext);
+			jswizards.createBubblePopup('.formInfo', helptext);
 		}
 	}
 
