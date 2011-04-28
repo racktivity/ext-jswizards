@@ -49,6 +49,7 @@ var success = function(data, status){
        alert("No data returned!!");
     }
     else {
+        $('#wizard_save').attr("disabled", false);
        	console.log(data);
         processData(data);
     }
@@ -70,7 +71,7 @@ var processData = function(jsondata) {
 	if (dataobj.hasOwnProperty('action') && dataobj.action == 'endofwizard'){
 		endofwizard = true;
 	}
-	if (endofwizard && validated == true) {
+	if (endofwizard) {
 		that.closeFloatBox(false);
 		return;
 	}
@@ -213,8 +214,9 @@ var getActiveTab = function(){
 }
 
 this.save = function(callresult) {
-	//if (!this.validated) return;
-	if (typeof callresult == 'undefined') callresult = true;
+    validated = true;
+    $('#wizard_save').attr("disabled", true);
+	if ( callresult == undefined ) callresult = true;
 	var resultdata = new Object();
 	resultdata['activeTab'] = getActiveTab();
 	resultdata['tabs'] = tabs;
@@ -227,9 +229,9 @@ this.save = function(callresult) {
 			var id = element['name'];
 			var controltype = element['control'];
 			if (controltype == 'text' || controltype == 'password' || controltype == 'number' || controltype == 'dropdown') {
-				validate(element['validator'], id);
+				callresult &= validate(element['validator'], id);
 				if (element['optional'] == false) {
-					callresult = validateRequired(element['name']);
+					callresult &= validateRequired(element['name']);
 				}
 				element['value'] = $('#' + id).val();
 			}
@@ -260,6 +262,9 @@ this.save = function(callresult) {
 	if (callresult == true){
 		callResult($.toJSON(resultdata), success)
 	}
+    else{
+        $('#wizard_save').attr("disabled", false);
+    }
 	return resultdata;
 }
 
@@ -309,15 +314,17 @@ var validate = function(validator, id) {
 		var obj = $('#' + id);
 		var val = obj.val();
 		var result = val.match(validator);
-                if (result) {
+        if (result) {
 			if (result[0] == val){
 				doSuccess(obj);
 			}
 		}
 		else {
 			doError(obj, 'validation error. ' + id + ' should match regex ' + validator + ' ' + val);
-		};
+            return false;
+		}
 	}
+    return true;
 }
 
 var doError = function(obj, message) {
@@ -330,7 +337,6 @@ var doError = function(obj, message) {
 }
 
 var doSuccess = function(o) {
-    //this.validated = true;
    o.removeClass("error");
    $('#' + o.attr('id') + '_msg').html("");
    o.addClass("success");

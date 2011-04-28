@@ -14,7 +14,7 @@ function JsWizardsForm() {
 	
 	this.finalize = function(){
 	    floatform.tabs();
-        floatform.append('<input type="button" value="Save" onClick="jswizards.save()"/>\
+        floatform.append('<input type="button" id="wizard_save" value="Save" onClick="jswizards.save(true)"/>\
 		        <input type="button" name="cancel" value="Cancel" onclick="jswizards.closeFloatBox()"/>');
 
 		$.floatbox({
