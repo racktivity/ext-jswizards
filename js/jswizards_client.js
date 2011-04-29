@@ -119,7 +119,8 @@ var processData = function(jsondata) {
 					else form.addText(tabid, elementname, elementtext, value, validator, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'integer') {
-					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname, message, helptext);
+
+					form.addInteger(tabid, elementname, elementtext, value, null, null, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'option') {
 					form.addChoice(tabid, elementname, elementtext, element['values'], value, optional, callbackname, message, helptext);
@@ -134,7 +135,7 @@ var processData = function(jsondata) {
 					form.addDropDown(tabid, elementname, elementtext, element['values'], value, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'number') {
-					form.addInteger(tabid, elementname, elementtext, value, optional, callbackname, message, helptext);
+					form.addInteger(tabid, elementname, elementtext, value, null, null, optional, callbackname, message, helptext);
 				}
 				else if (controltype == 'date') {
 					form.addDate(tabid, elementname, elementtext, element['minValue'], element['maxValue'], value, callbackname, message, helptext);
@@ -202,8 +203,8 @@ var processOldStyleData = function(dataobj) {
 	}
 }
 
-var processCallback = function(callbackname) {
-	resultdata = save(false);
+this.processCallback = function(callbackname) {
+	resultdata = that.save(false);
 	callback(this.wizardName, callbackname, $.toJSON(resultdata), session)
 }
 
@@ -229,7 +230,7 @@ this.save = function(callresult) {
 			var id = element['name'];
 			var controltype = element['control'];
 			if (controltype == 'text' || controltype == 'password' || controltype == 'number' || controltype == 'dropdown') {
-				callresult &= validate(element['validator'], id);
+				callresult &= that.validate(element['validator'], id);
 				if (element['optional'] == false) {
 					callresult &= validateRequired(element['name']);
 				}
@@ -275,20 +276,9 @@ this.closeFloatBox = function(callstop){
     form.close();
 }
 
-this.checkInteger = function(id) {
-    var inputval = $('#' + id).val();
-    var s_len = inputval.length ;
-    var s_charcode = 0;
-    for (var s_i=0;s_i<s_len;s_i++) {
-       s_charcode = inputval.charCodeAt(s_i);
-       if(!((s_charcode>=48 && s_charcode<=57))) {
-        alert("Only Numeric Values Allowed");
-        inputval = '';
-		$('#' + id).focus();
-        return false;
-      }
-    }
-    return true;
+this.checkInteger = function(inputval) {
+    var res = parseFloat(inputval);
+    return res >= 0 || res <= 0;
 }
 
 var next = function() {
@@ -313,12 +303,20 @@ this.validate = function(validator, id) {
 	if (validator != null) {
 		var obj = $('#' + id);
 		var val = obj.val();
-		var result = val.match(validator);
+		var result = false;
+        var type = typeof(validator);
+        switch(type){
+            case "string": 
+                var ismatch = val.match(validator);
+			    result = ismatch && ismatch[0] == val;
+                break;
+            case "function": result = validator(val); break;
+            default: result = false; break;
+        }
         if (result) {
-			if (result[0] == val){
 				doSuccess(obj);
-			}
 		}
+	
 		else {
 			doError(obj, 'validation error. ' + id + ' should match regex ' + validator + ' ' + val);
             return false;

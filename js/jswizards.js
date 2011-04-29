@@ -94,7 +94,7 @@ function JsWizardsForm() {
     var addCallback = function(id, callbackname){
         onfinalize.push(function() {
             $("#"+id).change(function(){
-                processCallback(callbackname);
+                jswizards.processCallback(callbackname);
             });
         });
     }
@@ -138,6 +138,7 @@ function JsWizardsForm() {
         if (value != null) {
         	contents += ' value=' + value;
         }
+        contents += "></input>"
        	var id = name + '_tip';
         if (helptext != null) {
         	contents += createTip(id)
