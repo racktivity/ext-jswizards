@@ -154,9 +154,9 @@ function JsWizardsForm() {
 		for (value in values) {
 			stringvalue = values[value][0];
 			if (selectedValue != null && selectedValue == value){
-				choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" checked="checked" >' + stringvalue + '</input></br>';
+				choicestring += '<div><input type="radio" id="' + stringvalue + '" name="' + name + '" checked="checked" />' + stringvalue + '</div>';
 			}
-			else choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" >'+ stringvalue + '</input></br>';
+			else choicestring += '<div><input type="radio" id="' + stringvalue + '" name="' + name + '" />'+ stringvalue + '</div>';
 		}
         var id = name + "_tip";
         if (helptext != null) {
