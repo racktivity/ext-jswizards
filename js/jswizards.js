@@ -3,6 +3,7 @@ function JsWizardsForm() {
 
     var floatform = null;
     var floatbox = null;
+    var onfinalize = new Array();
 	
 	this.createForm = function(){
         floatform = $('<div id="floatform"><ul></ul></div>');
@@ -24,6 +25,9 @@ function JsWizardsForm() {
 		    });
         $("[name='input_datetime']").datetimepicker();
         $("[name='input_date']").datepicker();
+        $.each(onfinalize, function(idx, cb){
+            cb();
+        });
 
 	}
 
@@ -58,32 +62,59 @@ function JsWizardsForm() {
         	contents += ' value=' + value;
         }
         contents += ' />';
+        var id = name + "tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        	contents += createTip(id);
         }
         contents += '</div><div class="validation_error" id="' + name + '_msg"></div>';
 		floatform.append(contents);
-		if (validator != null) {
-			floatform.select('#' + name).change(function(){
-				validate(validator, name);
-			})
+        addFinalizers(name, id, message, helptext, validator, callbackname);
+	};	
+
+
+    var addFinalizers = function(id, tipid, message, helptext, validator, callbackname){
+    	if (validator != null) {
+            addOnChange(id, validator);
 		}
 		
 		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
+            addBubble(id, message);
 		}
 		
 		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
+            addBubble(tipid, helptext);
 		}
 
 		if (callbackname != null){
-			$('#' + name).change(function(){
-				processCallback(callbackname);
-			})
+            addCallback(id, callbackname);
 		};
-	};	
+
+    }
+
+    var addCallback = function(id, callbackname){
+        onfinalize.push(function() {
+            $("#"+id).change(function(){
+                processCallback(callbackname);
+            });
+        });
+    }
+
+    var addOnChange = function(id, validator){
+        onfinalize.push(function() {
+            $("#"+id).change(function() {
+                jswizards.validate(validator, id);
+            });
+        });
+    }
+
+    var addBubble = function(id, message){
+        onfinalize.push(function() { jswizards.createBubblePopup("#"+id, message);});
+    }
+
+    var createTip = function(id){
+        return '<span class="formInfo"><a id=' + id + '>?</a></span>';
+    }
+
 
 	this.addText = function(tabid, name, text, value, validator, optional, callbackname, message, helptext) {
 		addInput(tabid, 'text', name, text, value, validator, optional, callbackname, message, helptext);
@@ -107,25 +138,13 @@ function JsWizardsForm() {
         if (value != null) {
         	contents += ' value=' + value;
         }
+       	var id = name + '_tip';
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        	contents += createTip(id)
         }
         contents += '</div>';
 		floatform.append(contents);
-		$('input').change(function(){
-			checkInteger(name);
-			if (callbackname != null){
-				processCallback(callbackname);
-			}
-		})
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
+        addFinalizers(name, id, message, helptext, jswizards.checkInteger, callbackname);
 	}
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
@@ -138,22 +157,12 @@ function JsWizardsForm() {
 			}
 			else choicestring += '<input type="radio" id="' + stringvalue + '" name="' + name + '" >'+ stringvalue + '</input></br>';
 		}
+        var id = name + "_tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	choicestring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        	choicestring += createTip(id);
         }
 		floatform.append(choicestring + '</div>');
-		if (callbackname != null){
-			$('input').change(function(){
-				processCallback(callbackname);
-			})
-		};
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
+        addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
 	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
@@ -166,22 +175,12 @@ function JsWizardsForm() {
 			}
 			else choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + '>' + value + '</br>';
 		}
+        var id = name + "_tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	choicestring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        	choicestring += createTip(id);
         }
 		floatform.append(choicestring + '</div>');
-		if (callbackname != null){
-			$('input').change(function(){
-				processCallback(callbackname);
-			})
-		};
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
+        addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
 	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
@@ -195,24 +194,12 @@ function JsWizardsForm() {
 			else htmlstring += '<option value=' + valueindex + '>' + value + '</option>';
 		}
 		htmlstring += '</select>';
+        var id = name + "_tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	htmlstring += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        	htmlstring += createTip(id);
         }
 		floatform.append(htmlstring + '</div>');
-		if (callbackname != null){
-			$('select').change(function(){
-				processCallback(callbackname);
-			})
-		};
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
-
+        addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 
 	this.message = function(tabid, name, text, bold, multiline) {
@@ -234,46 +221,24 @@ function JsWizardsForm() {
 		//#TODO: Implement minValue and maxValue and floatformat
 		//#TODO: Make sure the returned value is in epoch like with flash
 		floatform.append('<div id=' + tabid + '></label>' + text + '</label><p> <input type="text" name="input_date" id="' + name + '" /></p>');
+        var id = name + "_tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	floatform.append('<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        	floatform.append(createTip(id));
         }
         floatform.append('</div>');
-		if (callbackname != null){
-			$('input').change(function(){
-				processCallback(callbackname);
-			})
-		};
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
+        addFinalizers(name, id, message, helptext, null, callbackname);
 	};
 	
 	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
 		floatform.append('<div id=' + tabid + '><label>' + text + '</label><p><input name="input_datetime" id="' + name + '" type="text" /></p>');
+        var id = name + "_tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	floatform.append('<span class="formInfo" id=' + id + '><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>');
+        	floatform.append(createTip(id));
         }
         floatform.append('</div>');
-		if (callbackname != null){
-			floatform.select('#'+ name).change(function(){
-				processCallback(callbackname);
-			})
-		};
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
-
+        addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
 	this.addMultiline = function(tabid, name, text, value, validator, optional, callbackname, message, helptext) {
@@ -290,23 +255,13 @@ function JsWizardsForm() {
         	contents += ' value=' + value;
         }
         contents += ' ></textarea>';
+        var id = name + "_tip";
         if (helptext != null) {
-        	id = name + helptext.replace(' ', '');
-        	contents += '<span class="formInfo"><a class="jTip" id=' + id + ' name=' + helptext + '>?</a></span>';
+        	contents += createTip(id);
         }
         contents += '</div>';
 		floatform.append(contents);
-		if (callbackname != null){
-			$('input').change(function(){
-				processCallback(callbackname);
-			})
-		};
-		if (message != null) {
-			jswizards.createBubblePopup('#' + name, message);
-		}
-		if (helptext != null) {
-			jswizards.createBubblePopup('.formInfo', helptext);
-		}
+        addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 
 }

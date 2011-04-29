@@ -275,7 +275,7 @@ this.closeFloatBox = function(callstop){
     form.close();
 }
 
-var checkInteger = function(id) {
+this.checkInteger = function(id) {
     var inputval = $('#' + id).val();
     var s_len = inputval.length ;
     var s_charcode = 0;
@@ -309,7 +309,7 @@ var validateRequired = function(id) {
 	return true;
 }
 
-var validate = function(validator, id) {
+this.validate = function(validator, id) {
 	if (validator != null) {
 		var obj = $('#' + id);
 		var val = obj.val();
