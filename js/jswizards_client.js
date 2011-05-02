@@ -4,6 +4,7 @@ function jswizards_class(){
 var _baseUrl = null;
 var validated = true;
 var form = null;
+var oldform = null;
 var tabs = null;
 var session = null;
 var that = this;
@@ -156,45 +157,48 @@ var processData = function(jsondata) {
 }
 
 var processOldStyleData = function(dataobj) {
-	if (!form) {
-		form = new OldForm();
-		form.createForm();
+    if (form){
+        form.close();
+    }
+	if (!oldform) {
+		oldform = new OldForm();
+		//oldform.createForm();
 	}
 	console.log(dataobj);
 	params = dataobj['params'];
 	control = params['control'];
 	cb = null;
 	if (control == 'label') {
-		form.message(params['text']);
+		oldform.message(params['text']);
 	}
 	else if (control == 'text') {
 		if (params['password'] == true) {
-			cb = form.askPassword(params['text'], params['value']);
+			cb = oldform.askPassword(params['text'], params['value']);
 		}
 		else if (params['multiline'] == true) {
-			cb = form.askMultiline(params['text'], params['value']);
+			cb = oldform.askMultiline(params['text'], params['value']);
 		}
 		else {
-		cb = form.askString(params['text'], params['value']);
+		cb = oldform.askString(params['text'], params['value']);
 		}
 	}
 	else if (control == 'dropdown') {
-		cb = form.askDropdown(params['text'], params['values'], params['value']);
+		cb = oldform.askDropdown(params['text'], params['values'], params['value']);
 	}
 	else if (control == 'option') {
-		cb = form.askChoice(params['text'], params['values'], params['value']);
+		cb = oldform.askChoice(params['text'], params['values'], params['value']);
 	}
 	else if (control == 'date') {
-		cb = form.askDate(params['text']);
+		cb = oldform.askDate(params['text']);
 	}
 	else if (control == 'datetime') {
-		cb = form.askDateTime(params['text']);
+		cb = oldform.askDateTime(params['text']);
 	}
 	else if (control == 'number') {
-		cb = form.askInteger(params['text'], params['value']);
+		cb = oldform.askInteger(params['text'], params['value']);
 	}
 	else if (control == 'messagebox') {
-		cb = form.showMessageBox(params['message'], params['title'], params['msgboxButtons'], params['msgboxIcon'], params['defaultButton'])
+		cb = oldform.showMessageBox(params['message'], params['title'], params['msgboxButtons'], params['msgboxIcon'], params['defaultButton'])
 	}
 	else alert('control type not implemented yet!!');
 
@@ -281,7 +285,7 @@ this.checkInteger = function(inputval) {
     return res >= 0 || res <= 0;
 }
 
-var next = function() {
+this.next = function() {
 	if (dataobj.hasOwnProperty('callback')){
 		dataobj['result'] = dataobj['callback']();
 	}

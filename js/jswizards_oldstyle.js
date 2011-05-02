@@ -3,7 +3,7 @@ function OldForm() {
 	 this.createForm = function(){
 		$.floatbox({
 		        content: '<div id="form"><ul></ul></div>\
-		        <input type="submit" value="Next" onClick="next()"/>\
+		        <input type="submit" value="Next" onClick="jswizards.next()"/>\
 		        <input type="button" name="cancel" value="Cancel" onclick="closeFloatBox()"/>',
 		        fade: true
 		    });
@@ -196,7 +196,7 @@ function OldForm() {
 			};
 		})
 	
-		$('#form').append('<div id="dialog" />');	
+		$('#container').append('<div id="dialog" />');	
 		$("#dialog").dialog({
 			buttons: buttonoptions,
 			show: 'slide',
@@ -204,10 +204,10 @@ function OldForm() {
 			
 			});
 		iconpaths = {
-			'Information': '../icons/information.png',
-			'Error': '../icons/error.png',
-			'Warning': '../icons/warning.png',
-			'Question': '../icons/question.png'
+			'Information': '/static/jswizards/icons/information.png',
+			'Error': '/static/jswizards/icons/error.png',
+			'Warning': '/static/jswizards/icons/warning.png',
+			'Question': '/static/jswizards/icons/question.png'
 		}
 		$('#dialog').append("<img src='" + iconpaths[msgboxIcon] + "' align='left'/>");
 		$('#dialog').append(message);
