@@ -4,11 +4,12 @@ function jswizards_class(){
 var _baseUrl = null;
 var validated = true;
 var form = null;
-var oldform = null;
 var tabs = null;
 var session = null;
 var that = this;
 var dataobj = null;
+var inputid = 0;
+var oldstyle = false;
 
 
 var callAppserver = function(wizardurl, success) {
@@ -157,51 +158,69 @@ var processData = function(jsondata) {
 }
 
 var processOldStyleData = function(dataobj) {
-    if (form){
-        form.close();
-    }
-	if (!oldform) {
-		oldform = new OldForm();
-		//oldform.createForm();
+	var params = dataobj['params'];
+	var control = params['control'];
+    var tabid = "oldstyletab";
+	if (!form) {
+        oldstyle = true;
+		form = new JsWizardsForm();
+		form.createForm();
+        form.addTab("General", tabid);
+        form.finalize();
 	}
+    else if(!oldstyle && control != 'messagebox'){
+        form.close();
+        form.clear();
+        form.addTab("General", tabid);
+        form.finalize();
+        oldstyle = true;
+    }
+
+    //make save/send button in correct state
+    $("#wizard_save").attr("value", "Next").attr("OnClick", "jswizards.next()");
 	console.log(dataobj);
-	params = dataobj['params'];
-	control = params['control'];
-	cb = null;
+	var cb = null;
+    inputid++;
+    var id = "wizard_input" + inputid;
 	if (control == 'label') {
-		oldform.message(params['text']);
+		form.message(params['text']);
 	}
 	else if (control == 'text') {
 		if (params['password'] == true) {
-			cb = oldform.askPassword(params['text'], params['value']);
+            form.addPassword(tabid, id, params['text'], params['value']);
 		}
 		else if (params['multiline'] == true) {
-			cb = oldform.askMultiline(params['text'], params['value']);
+            form.addMultiline(tabid, id, params['text'], params['text']);
 		}
 		else {
-		cb = oldform.askString(params['text'], params['value']);
+		    form.addText(tabid, id, params['text'], params['value']);
 		}
 	}
 	else if (control == 'dropdown') {
-		cb = oldform.askDropdown(params['text'], params['values'], params['value']);
+        form.addDropDown(tabid, id, params['text'], params['values'], params['value']);
 	}
 	else if (control == 'option') {
-		cb = oldform.askChoice(params['text'], params['values'], params['value']);
+        form.addChoice(tabid, id, params['text'], params['values'], params['value']);
+        cb = function(){ return $("input[name=" + id + "]:checked")[0].id;}
 	}
 	else if (control == 'date') {
-		cb = oldform.askDate(params['text']);
+        form.addDate(tabid, id, params['text']);
+        cb = function() { return parseDate($("#"+id).val()); }
 	}
 	else if (control == 'datetime') {
-		cb = oldform.askDateTime(params['text']);
+        form.addDateTime(tabid, id, params['text']);
+        cb = function() { return parseDateTime($("#"+id).val()); }
 	}
 	else if (control == 'number') {
-		cb = oldform.askInteger(params['text'], params['value']);
+        form.addInteger(tabid, id, params['text'], params['value']);
 	}
 	else if (control == 'messagebox') {
-		cb = oldform.showMessageBox(params['message'], params['title'], params['msgboxButtons'], params['msgboxIcon'], params['defaultButton'])
+		form.showMessageBox(params['message'], params['title'], params['msgboxButtons'], params['msgboxIcon'], params['defaultButton'])
 	}
 	else alert('control type not implemented yet!!');
-
+    if (cb == null && control != 'messagebox'){
+        cb = function() { return $("#"+ id).val() }
+    }
 	if (cb != null) {
 		dataobj['callback'] = cb;
 	}
@@ -216,6 +235,26 @@ var getActiveTab = function(){
 	var mytabs = $('#floatform').tabs();
 	var selected = mytabs.tabs('option', 'selected');
 	return tabs[selected]['name'];
+}
+
+var parseDate = function(val){
+	var parts = val.split('/');
+    var datevalue = new Date(parts[2], parts[0], parts[1]);
+	var epoch = datevalue.getTime();
+    return epoch / 1000;
+
+}
+
+var parseDateTime = function(vale){
+    var parts = val.split('/');
+	var month = parts[0];
+	var day = parts[1];
+	var subparts = parts[2].split(' ');
+	var year = subparts[0];
+	var hour = subparts[1].split(':')[0];
+	var minute = subparts[1].split(':')[1];
+	var datevalue = new Date(year, month, day, hour, minute);
+    return datevalue.getTime()/1000;
 }
 
 this.save = function(callresult) {
@@ -244,23 +283,12 @@ this.save = function(callresult) {
 				element['value'] = $("input[name="+ id +"]:checked")[0].id;
 			}
 			else if (controltype == 'date') {
-				val = $('#'+id).val();
-				parts = val.split('/');
-				datevalue = new Date(parts[2], parts[0], parts[1]);
-				epoch = datevalue.getTime();
-				element['value'] = epoch/1000;
+				var val = $('#'+id).val();
+				element['value'] = parseDate(val);
 			}
 			else if (controltype == 'datetime') {
-				val = $('#' + id).val();
-				parts = val.split('/');
-				month = parts[0];
-				day = parts[1];
-				subparts = parts[2].split(' ');
-				year = subparts[0];
-				hour = subparts[1].split(':')[0];
-				minute = subparts[1].split(':')[1];
-				datevalue = new Date(year, month, day, hour, minute);
-				element['value'] = datevalue.getTime()/1000;
+				var val = $('#' + id).val();
+				element['value'] = parseDateTime(val); 
 			}
 		}
 	}
@@ -285,11 +313,11 @@ this.checkInteger = function(inputval) {
     return res >= 0 || res <= 0;
 }
 
-this.next = function() {
-	if (dataobj.hasOwnProperty('callback')){
-		dataobj['result'] = dataobj['callback']();
+this.next = function(result) {
+    if (!result && dataobj.hasOwnProperty('callback')){
+		result = dataobj['callback']();
 	}
-	callResult($.toJSON(dataobj), success)
+	callResult($.toJSON(result), success)
 }
 
 var validateRequired = function(id) {

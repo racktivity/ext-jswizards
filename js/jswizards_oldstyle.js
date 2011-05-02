@@ -1,3 +1,4 @@
+/* this file is not used anymore and is just kept as reference for now and will be removed when all functionality is working */
 function OldForm() {
 	
 	 this.createForm = function(){

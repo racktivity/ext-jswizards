@@ -6,12 +6,17 @@ function JsWizardsForm() {
     var onfinalize = new Array();
 	
 	this.createForm = function(){
-        floatform = $('<div id="floatform"><ul></ul></div>');
+        floatform = $('<div id="floatform"></div>').append("<ul>").append("<div>");
 	}
 	
 	this.addTab = function (name, tabid){
 		floatform.find('ul')[0].innerHTML += "<li><a href='#"+ tabid +"'><span>" + name + "</span></a></li>";
 	}
+
+    this.clear = function(){
+        $("#floatform").empty();
+        floatform = $('<div id="floatform"></div>').append("<ul>");
+    }
 	
 	this.finalize = function(){
 	    floatform.tabs();
@@ -28,6 +33,7 @@ function JsWizardsForm() {
         $.each(onfinalize, function(idx, cb){
             cb();
         });
+        floatform = $("#floatform > div");
 
 	}
 
@@ -125,27 +131,7 @@ function JsWizardsForm() {
 	}
 	
 	this.addInteger = function(tabid, name, text, value, minvalue, maxvalue, optional, callbackname, message, helptext) {
-		if (!optional) optional = true;
-		
-		var required = '';
-		if (optional == true) {
-			required = 'required';
-		}
-		var contents = '';
-
-		contents += '<div id=' + tabid + '><label>'
-         + text + '</label><input type="text" id=' + name;
-        if (value != null) {
-        	contents += ' value=' + value;
-        }
-        contents += "></input>"
-       	var id = name + '_tip';
-        if (helptext != null) {
-        	contents += createTip(id)
-        }
-        contents += '</div>';
-		floatform.append(contents);
-        addFinalizers(name, id, message, helptext, jswizards.checkInteger, callbackname);
+		addInput(tabid, 'text', name, text, value, jswizards.checkInteger, optional, callbackname, message, helptext);
 	}
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
@@ -265,6 +251,52 @@ function JsWizardsForm() {
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 
+	this.showMessageBox = function(message, title, msgboxButtons, msgboxIcon, defaultButton) {
+		//#TODO: keep focus on the default button, currently it loses focus immidiately after loading
+		if (msgboxButtons == 'OKCancel') {
+			buttons = ['Ok', 'Cancel'];
+		}
+		else if (msgboxButtons == 'YesNo') {
+			buttons = ['Yes', 'No'];
+		}
+		else if (msgboxButtons == 'YesNoCancel') {
+			buttons = ['Yes', 'No', 'Cancel'];
+		}
+		else buttons = ['Ok'];
+		
+		buttonoptions = new Array(buttons.length);
+		$.each(buttons, function(index, button) {
+			buttonoptions[index] = {	
+				text: button,
+				click: function() {
+					jswizards.next(button);
+					$(this).dialog("close");
+                }
+			};
+		})
+	
+		$('#container').append('<div id="dialog" />');	
+		$("#dialog").dialog({
+			buttons: buttonoptions,
+			show: 'slide',
+			title: title,
+			
+			});
+		iconpaths = {
+			'Information': '/static/jswizards/icons/information.png',
+			'Error': '/static/jswizards/icons/error.png',
+			'Warning': '/static/jswizards/icons/warning.png',
+			'Question': '/static/jswizards/icons/question.png'
+		}
+		$('#dialog').append("<img src='" + iconpaths[msgboxIcon] + "' align='left'/>");
+		$('#dialog').append(message);
+		$.each($('button', '#dialog'), function(index, buttontag){
+			if (buttontag.textContent == defaultButton) {
+				buttontag.focus();
+			}
+		});
+	}
+	
 
 
 }
