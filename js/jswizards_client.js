@@ -245,7 +245,7 @@ var parseDate = function(val){
 
 }
 
-var parseDateTime = function(vale){
+var parseDateTime = function(val){
     var parts = val.split('/');
 	var month = parts[0];
 	var day = parts[1];
