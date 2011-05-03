@@ -10,7 +10,8 @@ function JsWizardsForm() {
 	}
 	
 	this.addTab = function (name, tabid){
-		floatform.find('ul')[0].innerHTML += "<li><a href='#"+ tabid +"'><span>" + name + "</span></a></li>";
+		floatform.find('ul').append("<li><a href='#"+ tabid +"'><span>" + name + "</span></a></li>");
+        floatform.append($("<div>").attr("id", tabid).attr('class', 'wizard-tab'));
 	}
 
     this.clear = function(){
@@ -33,7 +34,7 @@ function JsWizardsForm() {
         $.each(onfinalize, function(idx, cb){
             cb();
         });
-        floatform = $("#floatform > div");
+        floatform = $("#floatform");
 
 	}
 
@@ -56,24 +57,25 @@ function JsWizardsForm() {
 			required = 'required';
 		}
 		var contents = '';
-
-		contents += '<div id=' + tabid + "_" + name +'>';
-		if (required != '') {
-			contents += '<label>' + text + '</label>' +'*' + '<input type=' + type + ' id=' + name + ' class="' + required + '" minlength="2"';
-		}
-		else {
-			contents += '<label>' + text + '</label>' +'<input type=' + type + ' id=' + name + ' minlength="2"';
-		}
-        if (value != null) {
-        	contents += ' value=' + value;
+        var maindiv = $('<div>');
+        maindiv.append($('<label>').text(text));
+        if (required != ''){
+            maindiv.append("*");
         }
-        contents += ' />';
-        var id = name + "tip";
+        var input = $("<input>").attr('type', type).attr('id', name).attr('minlength', "2");
+        if (required != ''){
+            input.attr('class', required);
+        }
+        if (value != null){
+            input.attr('value', value);
+        }
+        maindiv.append(input);
+        var id = name + "_tip";
         if (helptext != null) {
-        	contents += createTip(id);
+        	maindiv.append(createTip(id));
         }
-        contents += '</div><div class="validation_error" id="' + name + '_msg"></div>';
-		floatform.append(contents);
+        maindiv.append($('<div>').attr('class', 'validation_error').attr('id', name + "_msg"));
+		floatform.find("#"+tabid).append(maindiv);
         addFinalizers(name, id, message, helptext, validator, callbackname);
 	};	
 
@@ -136,7 +138,7 @@ function JsWizardsForm() {
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
-		choicestring += '<div id=' + tabid + '><label>' + text + '</label></br>';
+		choicestring += '<div><b>' + text + '</b></br>';
 		for (value in values) {
 			stringvalue = values[value][0];
 			if (selectedValue != null && selectedValue == value){
@@ -148,13 +150,13 @@ function JsWizardsForm() {
         if (helptext != null) {
         	choicestring += createTip(id);
         }
-		floatform.append(choicestring + '</div>');
+		floatform.find("#"+tabid).append(choicestring + '</div>');
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
 	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
-		choicestring += '<div id=' + tabid + '><label>' + text + '</label></br>';
+		choicestring += '<div><b>' + text + '</b></br>';
 		for (valueindex in values) {
 			value = values[valueindex];
 			if (selectedValue == value){
@@ -166,13 +168,13 @@ function JsWizardsForm() {
         if (helptext != null) {
         	choicestring += createTip(id);
         }
-		floatform.append(choicestring + '</div>');
+		floatform.find("#"+tabid).append(choicestring + '</div>');
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
 	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var htmlstring = '';
-		htmlstring += '<div id=' + tabid + '><label>' + text + '</label><select id="' + name + '">';
+		htmlstring += '<div><label>' + text + '</label><select id="' + name + '">';
 		for (valueindex in values) {
 			value = values[valueindex];
 			if (selectedValue == value) {
@@ -185,7 +187,7 @@ function JsWizardsForm() {
         if (helptext != null) {
         	htmlstring += createTip(id);
         }
-		floatform.append(htmlstring + '</div>');
+		floatform.find("#"+tabid).append(htmlstring + '</div>');
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 
@@ -193,38 +195,33 @@ function JsWizardsForm() {
 		if (typeof bold == 'undefined') bold = false;
 		if (typeof multiline == 'undefined') multiline = false;
 		if (bold == true) text = text.bold();
-		
-		if (multiline == true) {
-			floatform[0].innerHTML += '<div id=' + tabid + '>\
-		<textarea id=' + name + ' TextMode="multiLine">' + text + '</textarea>';
-		}
-		else {
-			floatform[0].innerHTML += '<div id=' + tabid + '>\
-			<div id=' + name + '>' + text + '</div>';
-		}
+	    var message = $('<div>').append($("<p>").text(text));	
+		floatform.find("#"+tabid).append(message);
 	}
 
 	this.addDate = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and floatformat
 		//#TODO: Make sure the returned value is in epoch like with flash
-		floatform.append('<div id=' + tabid + '></label>' + text + '</label><p> <input type="text" name="input_date" id="' + name + '" /></p>');
+        var content = '<div></label>' + text + '</label><p> <input type="text" name="input_date" id="' + name + '" /></p>';
         var id = name + "_tip";
         if (helptext != null) {
-        	floatform.append(createTip(id));
+        	content += createTip(id);
         }
-        floatform.append('</div>');
+        content += '</div>';
+		floatform.find("#"+tabid).append(content);
         addFinalizers(name, id, message, helptext, null, callbackname);
 	};
 	
 	this.addDateTime = function(tabid, name, text, minValue, maxValue, selectedValue, callbackname, message, helptext) {
 		//#TODO: Implement minValue and maxValue and format
 		//#TODO: Make sure the returned value is in epoch like with flash
-		floatform.append('<div id=' + tabid + '><label>' + text + '</label><p><input name="input_datetime" id="' + name + '" type="text" /></p>');
+		var content = '<div id=' + tabid + '><label>' + text + '</label><p><input name="input_datetime" id="' + name + '" type="text" /></p>';
         var id = name + "_tip";
         if (helptext != null) {
-        	floatform.append(createTip(id));
+        	content += createTip(id);
         }
-        floatform.append('</div>');
+        content += '</div>';
+        floatform.find("#"+tabid).append(content);
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
@@ -237,7 +234,7 @@ function JsWizardsForm() {
 		}
 		var contents = '';
 
-		contents += '<div id=' + tabid + '><label>' + text + '</label><textarea id=' + name + ' class=' + required;
+		contents += '<div><b>' + text + '</b><textarea id=' + name + ' class=' + required;
         if (value != null) {
         	contents += ' value=' + value;
         }
@@ -247,7 +244,7 @@ function JsWizardsForm() {
         	contents += createTip(id);
         }
         contents += '</div>';
-		floatform.append(contents);
+		floatform.find("#"+tabid).append(contents);
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 

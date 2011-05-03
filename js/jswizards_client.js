@@ -23,6 +23,7 @@ var callAppserver = function(wizardurl, success) {
     };
     
 this.start = function(appname, domainName, wizardName, applicationserverIp, extra) {
+    form = null;
     _baseUrl = "http://" + applicationserverIp + "/" + appname + "/appserver/rest/ui/wizard/";
 	validated = true;
 	var url = _baseUrl + "start?wizardName="+wizardName + 
@@ -183,7 +184,7 @@ var processOldStyleData = function(dataobj) {
     inputid++;
     var id = "wizard_input" + inputid;
 	if (control == 'label') {
-		form.message(params['text']);
+		form.message(tabid, id, params['text'], params['bold'], params['multiline']);
 	}
 	else if (control == 'text') {
 		if (params['password'] == true) {
