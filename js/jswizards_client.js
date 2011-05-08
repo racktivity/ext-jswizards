@@ -201,8 +201,8 @@ var processOldStyleData = function(dataobj) {
         form.addDropDown(tabid, id, params['text'], params['values'], params['value']);
 	}
 	else if (control == 'option') {
-        form.addChoice(tabid, id, params['text'], params['values'], params['value']);
-        cb = function(){ return $("input[name=" + id + "]:checked")[0].id;}
+        form.addChoice(tabid, id, params['text'], params['values'], params['selectedvalue']);
+        cb = function(){ return $.parseJSON($("input[name=" + id + "]:checked").val());}
 	}
 	else if (control == 'date') {
         form.addDate(tabid, id, params['text']);
@@ -212,8 +212,13 @@ var processOldStyleData = function(dataobj) {
         form.addDateTime(tabid, id, params['text']);
         cb = function() { return parseDateTime($("#"+id).val()); }
 	}
+    else if (control == "optionmultiple"){
+        form.addChoiceMultiple(tabid, id, params['text'], params['values'], params['selectedvalue'])
+        cb = function(){ return form.getMultiChoiceValues(id);}
+    }
 	else if (control == 'number') {
-        form.addInteger(tabid, id, params['text'], params['value']);
+        form.addInteger(tabid, id, params['text'], params['defaultvalue']);
+        cb = function() { return parseFloat($("#"+ id).val()) }
 	}
 	else if (control == 'messagebox') {
 		form.showMessageBox(params['message'], params['title'], params['msgboxButtons'], params['msgboxIcon'], params['defaultButton'])
@@ -280,9 +285,12 @@ this.save = function(callresult) {
 				}
 				element['value'] = $('#' + id).val();
 			}
-			else if (controltype == 'option' || controltype == 'optionmultiple') {
-				element['value'] = $("input[name="+ id +"]:checked")[0].id;
+			else if (controltype == 'option' ) {
+				element['value'] = $.parseJSON($("input[name="+ id +"]:checked").val());
 			}
+            else if (controltype == 'optionmultiple') {
+				element['value'] = form.getMultiChoiceValues(id);
+            }
 			else if (controltype == 'date') {
 				var val = $('#'+id).val();
 				element['value'] = parseDate(val);

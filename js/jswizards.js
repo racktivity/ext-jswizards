@@ -138,39 +138,54 @@ function JsWizardsForm() {
 	
 	this.addChoice = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var choicestring = '';
+        var maindiv = $("<div>");
+        maindiv.append($("<b>").text(text)).append("<br />");
 		choicestring += '<div><b>' + text + '</b></br>';
 		for (value in values) {
-			stringvalue = values[value][0];
-			if (selectedValue != null && selectedValue == value){
-				choicestring += '<div><input type="radio" id="' + stringvalue + '" name="' + name + '" checked="checked" />' + stringvalue + '</div>';
+			var choicetext = values[value][0];
+			var choicevalue = values[value][1];
+            var choice = $('<div>')
+            var input = $("<input>").attr("type", "radio").attr("name", name).attr('value', $.toJSON(choicevalue));
+			if (selectedValue != null && selectedValue == choicevalue){
+                input.attr("checked", "checked");
 			}
-			else choicestring += '<div><input type="radio" id="' + stringvalue + '" name="' + name + '" />'+ stringvalue + '</div>';
+            choice.append(input).append(choicetext);
+            maindiv.append(choice);
 		}
         var id = name + "_tip";
         if (helptext != null) {
-        	choicestring += createTip(id);
+        	maindiv.append(createTip(id));
         }
-		floatform.find("#"+tabid).append(choicestring + '</div>');
+		floatform.find("#"+tabid).append(maindiv);
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
 	
 	this.addChoiceMultiple = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
-		var choicestring = '';
-		choicestring += '<div><b>' + text + '</b></br>';
-		for (valueindex in values) {
-			value = values[valueindex];
+        var maindiv = $("<div>").append($("<b>").text(text)).append("<br />");
+		for (var valuename in values) {
+			var value = values[valuename];
+            var input = $("<input>").attr("type", "checkbox").attr("name", name).attr("value", $.toJSON(value));
 			if (selectedValue == value){
-				choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + ' checked="checked" >' + value + '</br>';
+                input.attr("checked", "checked");
 			}
-			else choicestring += '<input type="checkbox"  id=' + value + ' name=' + name + '>' + value + '</br>';
+            maindiv.append(input).append(valuename).append($("<br>"));
 		}
         var id = name + "_tip";
         if (helptext != null) {
-        	choicestring += createTip(id);
+            maindiv.append(createTip(id));
         }
-		floatform.find("#"+tabid).append(choicestring + '</div>');
+		floatform.find("#"+tabid).append(maindiv);
         addFinalizers(name, id, message, helptext, null, callbackname);
 	}
+
+
+    this.getMultiChoiceValues = function(name) {
+        var values = new Array();
+        $("input[name=" + name + "]:checked").each(function(){
+            values.push($.parseJSON($(this).val()));
+        });
+        return values;
+    }
 	
 	this.addDropDown = function(tabid, name, text, values, selectedValue, optional, callbackname, message, helptext) {
 		var htmlstring = '';

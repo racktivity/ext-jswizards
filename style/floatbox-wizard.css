@@ -1,4 +1,4 @@
 .wizard-tab { height:500px; overflow:auto; padding:0px !important}
 #floatbox-box div div { margin-top: 10px; width:100%; float:left;}
-#floatbox-box div label { width:13%; margin-left:10px; float:left;}
+#floatbox-box div label { min-width:30%; margin-left:10px; float:left;}
 #floatbox-box div div input[type='text'] { width:50%; margin-left:20px; float:left; margin: 0px !important;}
