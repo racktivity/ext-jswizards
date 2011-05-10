@@ -370,7 +370,12 @@ class DateHelper extends Control
       .attr('id', @data.name)
       .attr('name', @data.name)
       .addClass('jswizards-control-input-date')
-    i[@type]({ dateFormat: @gettypeformat(), changeYear: true})
+    options = { dateFormat: @gettypeformat(), changeYear: true }
+    if @data.minvalue
+      options['minDate'] = new Date(@data.minvalue*1000)
+    if @data.maxvalue
+      options['maxDate'] = new Date(@data.maxvalue*1000)
+    i[@type](options)
       .appendTo container
 
     if @data.helpText?
