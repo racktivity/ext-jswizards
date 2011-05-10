@@ -102,6 +102,8 @@ runWizard = (session, initialAction, call) ->
             .attr('id', '')
 
       false
+    #this is a hack because floatbox clone's our object's
+    formElement.clone = -> return this
 
     $.floatbox
       content: formElement
@@ -333,7 +335,79 @@ class LabelControl extends Control
 
 class DropDownControl extends Control
 
-class DateTimeControl extends Control
+
+class DateHelper extends Control
+  constructor: (@data) ->
+    @control = data.control
+    @type = null
+    $("<div>").datetimepicker()
+
+  getformat: ->
+    #wizards do format is not compatible with javasript one
+    format = @data.format.replace(/Y/g, "y")
+      .replace(/M/g, "\0")
+      .replace(/m/g, "M")
+      .replace(/\0/g, "m")
+      .replace(/D/g, "d")
+      .replace(/h/g, "H")
+    return format
+
+  gettypeformat: ->
+    return @getformat()
+
+  render: (container) ->
+    $('<label>')
+      .attr('for', @data.name)
+      .text(@data.text)
+      .appendTo container
+
+    date = null
+    if @data.value
+      date = new Date(@data.value*1000).format(@getformat())
+    i = $('<input>')
+      .attr('type', 'text')
+      .attr('value', date)
+      .attr('id', @data.name)
+      .attr('name', @data.name)
+      .addClass('jswizards-control-input-date')
+    i[@type]({ dateFormat: @gettypeformat(), changeYear: true})
+      .appendTo container
+
+    if @data.helpText?
+      i.attr('placeholder', @data.helpText)
+
+    i
+
+  serialize: (elem, control) ->
+    element = $("input[name=#{ @data.name }]", elem)
+    value = element.val()
+
+    #TODO Enhance validation stuff
+    if not @data.optional and (not value or value == '')
+      element.addClass('error')
+      control.value = undefined
+  
+      return false
+
+    value = new Date(value).getTime()/1000
+    element.removeClass('error')
+    control.value = value
+
+    true
+
+class DateTimeControl extends DateHelper
+  constructor: (@data) ->
+    @control = data.control
+    @type = 'datetimepicker'
+
+class DateControl extends DateHelper
+  constructor: (@data) ->
+    @control = data.control
+    @type = 'datepicker'
+
+  gettypeformat: ->
+    format = super
+    return format.replace("yyyy", "yy")
 
 Control.create = (data) ->
   switch data.control
@@ -341,7 +415,8 @@ Control.create = (data) ->
     when 'label' then new LabelControl data
     when 'dropdown' then new DropDownControl data
     when 'datetime' then new DateTimeControl data
-    else throw new Error 'Unknown control type'
+    when 'date' then new DateControl data
+    else throw new Error "Unknown control type #{ data.control }"
 
 
 # Register JSWizards global
