@@ -5,6 +5,7 @@ log = (args...) ->
 ###
 Launch a new wizard
 ###
+
 launch = (service, domain, name, extra, callback) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
 
@@ -41,30 +42,47 @@ launch = (service, domain, name, extra, callback) ->
   call service, 'start', args, (data, status) ->
     log 'Start call returned', data
 
-    [session, form] = data
+    [session, formData] = data
 
     call_ = (command, args_, callback_) ->
       call service, command, args_, callback_
 
-    runWizard session, form, call_
+    runWizard session, formData, call_
 
 ###
 Run a single wizard step
 ###
+
+wizardForm = null
+
 runWizard = (session, initialAction, call) ->
-  handleDisplay = (form, callback) ->
-    throw new Error 'Only form controls are supported' if form.control != 'form'
+  handleDisplay = (formData, callback) ->
+    #throw new Error 'Only form controls are supported' if form.control != 'form'
 
-    tabs = form.tabs
-    form_ = new Form
+    form = null
+    oldstyle = formData.control != 'form'
+    if not oldstyle
+      form = new Form
+      tabs = formData.tabs
 
-    for tab in tabs
-      tab_ = form_.addTab tab.name, tab.text
+      for tab in tabs
+        tab_ = form.addTab tab.name, tab.text
 
-      for control in tab.elements
-        tab_.addControl control
+        for control in tab.elements
+          tab_.addControl control
+    else
+      form = wizardForm
+      tab = null
+      if not form
+        form = new OldForm
+        tab = form.addTab "oldform", "General"
+      else
+        tab = form.tabs[form.tabs.length-1]
+      wizardForm = form
+      formData.name = "oldcontrol_#{ $.now() }"
+      tab.addControl formData
 
-    formElement = form_.render()
+    formElement = form.render()
 
     backgroundId = "floatbox-background-#{ $.now() }"
     boxId = "floatbox-background-#{ $.now() }"
@@ -72,36 +90,32 @@ runWizard = (session, initialAction, call) ->
     formElement.submit (evt) ->
       evt.preventDefault()
 
-      valid = form_.serialize(this, form)
+      valid = form.serialize(this, formData)
 
       if not valid
         throw new Error 'Validation failed'
 
-      data =
-        tabs: form.tabs
-        activeTab: form.tabs[0].name
+      data = null
+      if not oldstyle
+        data =
+          tabs: formData.tabs
+          activeTab: formData.tabs[0].name
+      else
+        data = formData
 
       args =
-        result: JSON.stringify data
+        result: JSON.stringify if oldstyle then data.value else data
         sessionId: session
 
       outer = this
 
       call 'result', args, (data, status) ->
         action = $.parseJSON data
-
-        $("#floatbox-box").fadeOut 200, ->
-          $("#floatbox-box").remove()
-
-          #TODO Remove background and jqfloatbox-params
-          $('#jqfloatbox-params').remove()
-
+        callback_ = ->
           callback action
-
-          $('#floatbox-background')
-            .attr('id', '')
-
+        form.close callback_
       false
+
     #this is a hack because floatbox clone's our object's
     formElement.clone = -> return this
 
@@ -129,6 +143,7 @@ runWizard = (session, initialAction, call) ->
     else
       $('.floatbox-background').fadeOut 200, ->
         $('.floatbox-background').remove()
+    wizardForm = null
 
   initialAction_ = $.parseJSON(initialAction)
 
@@ -147,7 +162,6 @@ Form class
 class Form
   constructor: ->
     @tabs = []
-    @form = null
 
   addTab: (name, text) ->
     tab = new Tab name, text
@@ -172,9 +186,18 @@ class Form
     valid
     
 
+  close: (callback) ->
+    $("#floatbox-box").fadeOut 200, ->
+      $("#floatbox-box").remove()
+      #TODO Remove background and jqfloatbox-params
+      $('#jqfloatbox-params').remove()
+      callback()
+      $('#floatbox-background').attr('id', '')
+
+
   render: ->
-    if @form?
-      return @form
+    #if @form?
+    #  return @form
 
     content = $('<div>')
       .addClass 'jswizards-form'
@@ -204,7 +227,7 @@ class Form
 
     content.tabs()
 
-    @form = $('<form>')
+    form = $('<form>')
       .append(content)
       .append(
         $('<div>')
@@ -227,7 +250,20 @@ class Form
             )
         )
 
-    @form
+    form
+
+###
+OldForm Class
+###
+
+class OldForm extends Form
+  
+  serialize: (elem, controldata) ->
+    tab = @tabs[@tabs.length-1]
+    control = tab.controls[tab.controls.length-1]
+    return control.serialize elem, controldata
+  
+
 
 ###
 Tab class
