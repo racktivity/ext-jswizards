@@ -200,7 +200,7 @@ DataHandler.create = (data, call, callback, session) ->
   switch data.control
     when 'form' then new FormDataHandler data, call, callback, session
     when 'messagebox' then new MessageBoxDataHandler data, call, callback, session
-    else new WizardDataHandler data
+    else new WizardDataHandler data, call, callback, session
 
 
 
@@ -513,8 +513,9 @@ class NumberControl extends Control
     if @data.helpText?
       i.attr('placeholder', @data.helpText)
 
-    if @data.value
-      i.attr('value', @data.value)
+    value = @data.value or @data.defaultvalue
+    if value
+      i.attr('value', value)
 
     i
 
@@ -537,7 +538,7 @@ class NumberControl extends Control
       return false
 
     element.removeClass('error')
-    control.value = value
+    control.value = parseFloat(value)
 
     true
 
@@ -604,8 +605,7 @@ class ChoiceControl extends Control
     i = $('<div>')
 
     optname = @data.name
-    optsel = @data.value
-    #oldval = @data.selvalue if @data.selvalue != undefined
+    optsel = @data.value or @data.selectedvalue
 
     indx = 0
     $.each @data.values, (k, v) ->
@@ -625,7 +625,7 @@ class ChoiceControl extends Control
 
     i.appendTo container
 
-    i  
+    i
 
   serialize: (elem, control) ->
     value = $("input[name=#{ @data.name }]:checked", elem).val()
@@ -672,7 +672,7 @@ class ChoiceMultipleControl extends Control
 
     i.appendTo container
 
-    i  
+    i
 
   serialize: (elem, control) ->
     element = $("div[htmlfor=#{ @data.name }]")
