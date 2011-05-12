@@ -51,3 +51,6 @@
   margin-left: 5px;
 }
 
+.jswizards-control-dropdown select{
+    margin-left: 5px; clear:right;
+}

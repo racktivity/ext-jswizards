@@ -334,6 +334,28 @@ class Control
   serialize: (elem, control) ->
     throw new Error 'Not implemented'
 
+  #Validates Optional, takes only value, Error response left for the caller (Error CSS, etc...)
+  validateOptional: (value) ->
+    if not @data.optional and (not value or value == '')
+      return false
+    true  
+
+  #Validates Number (Integer)
+  validateNumber: (value) ->
+    value.toString().search(/^-?[0-9]+$/) == 0
+
+  validateMaxMin: (value, max, min) ->
+    if parseInt(value)<parseInt(min) or parseInt(value)>parseInt(max)
+      return false
+    true
+
+  validator: (value, validator) ->
+    value.search(validator) == 0
+
+
+###
+Text Control Class
+###
 class TextControl extends Control
   render: (container) ->
     $('<label>')
@@ -354,6 +376,11 @@ class TextControl extends Control
     if @data.helpText?
       i.attr('placeholder', @data.helpText)
 
+    if @data.value and @data.multiline
+      i.html(@data.value)
+    else
+      i.attr('value', @data.value)
+    
     i
 
   serialize: (elem, control) ->
@@ -361,10 +388,57 @@ class TextControl extends Control
     value = element.val()
 
     #TODO Enhance validation stuff
-    if not @data.optional and (not value or value == '')
+    if not @validateOptional value
       element.addClass('error')
       control.value = undefined
-  
+      return false
+    else if @data.validator? and not @validator value, @data.validator
+      element.addClass('error')
+      control.value = undefined
+      return false
+    
+    element.removeClass('error')
+    control.value = value
+
+    true
+
+
+###
+Number Control
+###
+class NumberControl extends Control
+  render: (container) ->
+    $('<label>')
+      .attr('for', @data.name)
+      .text(@data.text)
+      .appendTo container
+
+    i = $('<input>')
+      .attr('type', 'text')
+      .attr('name', @data.name)
+      .addClass('text')
+      .appendTo container
+
+    if @data.helpText?
+      i.attr('placeholder', @data.helpText)
+
+    if @data.value
+      i.attr('value', @data.value)
+
+    i
+
+  serialize: (elem, control) ->
+    element = $("input[name=#{ @data.name }]", elem)
+    value = element.val()
+
+    #Validation goes here !!
+    if not @validateOptional(value) or not @validateNumber(value)
+      element.addClass('error')
+      control.value = undefined
+      return false
+    else if not @validateMaxMin value, @data.maxvalue, @data.minvalue
+      element.addClass('error')
+      control.value = undefined
       return false
 
     element.removeClass('error')
@@ -372,21 +446,170 @@ class TextControl extends Control
 
     true
 
-class LabelControl extends Control
+
+###
+Password Control
+###
+class PasswordControl extends Control
   render: (container) ->
     l = $('<span>')
       .text(@data.text)
       .appendTo container
 
-    if @data.bold
-      l.addClass('jswizards-control-label-bold')
+    p = $('<input>')
+      .attr('type', 'password')
+      .attr('id', @data.name)
 
-    l
+    if @data.helpText?
+      p.attr('placeholder', @data.helpText)
+    
+    container.append p
+
+  serialize: (elem, control) ->
+    value  = $("input[name=#{ @data.name }]", elem).val()
+
+    #Validation goes here !!
+    if not @validateOptional(value)
+      element.addClass('error')
+      control.value = undefined
+      return false
+
+    element.removeClass('error')
+    control.value = value
+    true
+
+
+###
+Label Control
+###
+class LabelControl extends Control
+  render: (container) ->
+    l = $('<label>')
+      .text(@data.text)
+      .appendTo container
 
   serialize: (elem, control) ->
     true
 
+###
+Drop Down Control
+###
 class DropDownControl extends Control
+  render: (container) ->
+    l = $('<label>')
+      .text(@data.text)
+      .appendTo container
+
+    i = $('<select>')
+      .attr('id', @data.name)
+      .addClass('jswizards-control-select')
+
+    sel = @data.value
+    oldval = @data.selvalue if @data.selvalue
+
+    indx = 0
+    $.each @data.values, (k, v) ->
+      o = $('<option>')
+        .attr('value', v)
+        .text(k)
+
+      if sel == v
+        o.attr('selected','true')
+
+      indx = indx + 1
+      o.appendTo i
+
+    i.appendTo container
+
+    i
+
+  serialize: (elem, control) ->
+    element = $("select[id=#{ @data.name }]", elem)
+    control.value = element.val()
+
+    true
+
+###
+Choice Control
+###
+class ChoiceControl extends Control
+  render: (container) ->
+    l = $('<label>')
+      .text(@data.text)
+      .appendTo container
+
+    i = $('<div>')
+
+    optname = @data.name
+    optsel = @data.value
+    #oldval = @data.selvalue if @data.selvalue != undefined
+
+    indx = 0
+    $.each @data.values, (k, v) ->
+      cont = $('<div>')
+      o = $('<input>')
+        .attr('type', 'radio')
+        .attr('name', optname)
+        .attr('value', JSON.stringify v[1])
+      
+      if optsel == v[1]
+        o.attr('checked','checked')
+      indx = indx + 1
+      
+      o.appendTo cont
+      cont.append v[0]
+      cont.appendTo i
+
+    i.appendTo container
+
+    i  
+
+  serialize: (elem, control) ->
+    control.value  = JSON.parse $("input[name=#{ @data.name }]:checked", elem).val()
+    true
+
+###
+Choice Mulitple Control
+###
+class ChoiceMultipleControl extends Control
+  render: (container) ->
+    l = $('<label>')
+      .text(@data.text)
+      .appendTo container
+
+    i = $('<div>')
+
+    optname = @data.name
+    optsel = @data.value
+
+    indx = 0
+    $.each @data.values, (k, v) ->
+      cont = $('<div>')
+      o = $('<input>')
+        .attr('type', 'checkbox')
+        .attr('name', optname)
+        .attr('value', k)
+      if $.isArray optsel
+        if $.inArray(k, optsel) != -1
+          o.attr('checked','checked')
+      else if optsel == k
+        o.attr('checked','checked')
+      indx = indx + 1
+      
+      o.appendTo cont
+      cont.append v
+      cont.appendTo i
+
+    i.appendTo container
+
+    i  
+
+  serialize: (elem, control) ->
+    control.value = new Array()
+    $("input[name=#{ @data.name }]:checked").each ->
+      control.value.push $(this).val()
+      true
+    true
 
 
 class DateHelper extends Control
@@ -474,7 +697,14 @@ Control.create = (data) ->
     when 'dropdown' then new DropDownControl data
     when 'datetime' then new DateTimeControl data
     when 'date' then new DateControl data
-    else throw new Error "Unknown control type #{ data.control }"
+    when 'option' then new ChoiceControl data
+    when 'optionmultiple' then new ChoiceMultipleControl data
+    when 'password' then new PasswordControl data
+    when 'number' then new NumberControl data
+    when 'multiline'
+      data.multiline = true
+      new TextControl data
+    else throw new Error 'Unknown control type: ' + data.control
 
 
 # Register JSWizards global
