@@ -54,3 +54,17 @@
 .jswizards-control-dropdown select{
     margin-left: 5px; clear:right;
 }
+
+.jswizards-control-helptext{
+    clear:both;
+    display: block;
+    color: #aaaaaa;
+    font-size: 0.8em;
+}
+
+.jswizards-control-error{
+    clear:both;
+    display: block;
+    color: red;
+    font-size: 0.8em;
+}
