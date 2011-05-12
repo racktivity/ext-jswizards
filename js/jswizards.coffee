@@ -57,31 +57,8 @@ wizardForm = null
 
 runWizard = (session, initialAction, call) ->
   handleDisplay = (formData, callback) ->
-    #throw new Error 'Only form controls are supported' if form.control != 'form'
-
-    form = null
-    oldstyle = formData.control != 'form'
-    if not oldstyle
-      form = new Form
-      tabs = formData.tabs
-
-      for tab in tabs
-        tab_ = form.addTab tab.name, tab.text
-
-        for control in tab.elements
-          tab_.addControl control
-    else
-      form = wizardForm
-      tab = null
-      if not form
-        form = new OldForm
-        tab = form.addTab "oldform", "General"
-      else
-        tab = form.tabs[form.tabs.length-1]
-      wizardForm = form
-      formData.name = "oldcontrol_#{ $.now() }"
-      tab.addControl formData
-
+    datahandler = DataHandler.create formData
+    form = datahandler.getForm()
     formElement = form.render()
 
     backgroundId = "floatbox-background-#{ $.now() }"
@@ -95,16 +72,9 @@ runWizard = (session, initialAction, call) ->
       if not valid
         throw new Error 'Validation failed'
 
-      data = null
-      if not oldstyle
-        data =
-          tabs: formData.tabs
-          activeTab: formData.tabs[0].name
-      else
-        data = formData
-
+      data = datahandler.getData()
       args =
-        result: JSON.stringify if oldstyle then data.value else data
+        result: JSON.stringify data
         sessionId: session
 
       outer = this
@@ -154,6 +124,53 @@ runWizard = (session, initialAction, call) ->
       else throw new Error 'Unknown action type'
 
   handleAction initialAction_
+
+class DataHandler
+  constructor: (@data) ->
+    @form = null
+
+class FormDataHandler extends DataHandler
+  getForm: ->
+    @form = new Form
+    tabs = @data.tabs
+
+    for tab in tabs
+       tab_ = @form.addTab tab.name, tab.text
+       for control in tab.elements
+         tab_.addControl control
+    return @form
+
+  getData: ->
+    #TODO fix activetab
+    data =
+      tabs: @data.tabs
+      activeTab: @data.tabs[0].name
+    data
+
+
+class WizardDataHandler extends DataHandler
+  getForm: ->
+    form = wizardForm
+    tab = null
+    if not form
+      form = new WizardForm
+      tab = form.addTab "oldform", "General"
+    else
+      tab = form.tabs[form.tabs.length-1]
+    wizardForm = form
+    @data.name = "oldcontrol_#{ $.now() }"
+    tab.addControl @data
+    @form = form
+    @form
+
+  getData: ->
+    @data.value
+
+DataHandler.create = (data) ->
+  switch data.control
+    when 'form' then new FormDataHandler data
+    else new WizardDataHandler data
+
 
 
 ###
@@ -256,7 +273,7 @@ class Form
 OldForm Class
 ###
 
-class OldForm extends Form
+class WizardForm extends Form
   
   serialize: (elem, controldata) ->
     tab = @tabs[@tabs.length-1]
