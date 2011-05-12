@@ -57,45 +57,10 @@ wizardForm = null
 
 runWizard = (session, initialAction, call) ->
   handleDisplay = (formData, callback) ->
-    datahandler = DataHandler.create formData
-    form = datahandler.getForm()
-    formElement = form.render()
-
-    backgroundId = "floatbox-background-#{ $.now() }"
-    boxId = "floatbox-background-#{ $.now() }"
-
-    formElement.submit (evt) ->
-      evt.preventDefault()
-
-      valid = form.serialize(this, formData)
-
-      if not valid
-        throw new Error 'Validation failed'
-
-      data = datahandler.getData()
-      args =
-        result: JSON.stringify data
-        sessionId: session
-
-      outer = this
-
-      call 'result', args, (data, status) ->
-        action = $.parseJSON data
-        callback_ = ->
-          callback action
-        form.close callback_
-      false
-
-    #this is a hack because floatbox clone's our object's
-    formElement.clone = -> return this
-
-    $.floatbox
-      content: formElement
-      fade: true
-      buttonPosition: 'none'
-
-    $("#floatbox-background").addClass('floatbox-background')
-    $("#floatbox-box").addClass('floatbox-box')
+    datahandler = DataHandler.create formData, call, callback, session
+    datahandler.render()
+    datahandler.registerSubmit()
+    datahandler.display()
 
   handleEndOfWizard = ->
     # This is an ugly hack
@@ -126,14 +91,55 @@ runWizard = (session, initialAction, call) ->
   handleAction initialAction_
 
 class DataHandler
-  constructor: (@data) ->
+  constructor: (@data, @call, @callback, @session) ->
     @form = null
+
+  render: ->
+    @form = @getForm()
+    @form.render()
+
+  registerSubmit: () ->
+    that = this
+    @form.form.submit (evt) ->
+      evt.preventDefault()
+      valid = that.form.serialize(this, that.data)
+
+      if not valid
+        throw new Error 'Validation failed'
+
+      data = that.getData()
+      args =
+        result: JSON.stringify data
+        sessionId: that.session
+
+      that.call 'result', args, (data, status) ->
+        action = $.parseJSON data
+        callback_ = ->
+          that.callback action
+        that.form.close callback_
+      false
+
+  display: ->
+    backgroundId = "floatbox-background-#{ $.now() }"
+    boxId = "floatbox-background-#{ $.now() }"
+
+        #this is a hack because floatbox clone's our object's
+    @form.form.clone = -> return this
+
+    $.floatbox
+      content: @form.form
+      fade: true
+      buttonPosition: 'none'
+
+    $("#floatbox-background").addClass('floatbox-background')
+    $("#floatbox-box").addClass('floatbox-box')
+
+
 
 class FormDataHandler extends DataHandler
   getForm: ->
     @form = new Form
     tabs = @data.tabs
-
     for tab in tabs
        tab_ = @form.addTab tab.name, tab.text
        for control in tab.elements
@@ -166,9 +172,34 @@ class WizardDataHandler extends DataHandler
   getData: ->
     @data.value
 
-DataHandler.create = (data) ->
+
+class MessageBoxDataHandler extends DataHandler
+  getForm: ->
+    that = this
+    callback = (data) ->
+      args =
+        result: JSON.stringify data
+        sessionId: that.session
+
+      that.call 'result', args, (data, status) ->
+        action = $.parseJSON data
+        that.callback action
+ 
+    new MessageBoxForm wizardForm, @data, callback
+
+  getData: ->
+    @data.value
+
+  registerSubmit: ->
+    null
+
+  display: ->
+    null
+
+DataHandler.create = (data, call, callback, session) ->
   switch data.control
-    when 'form' then new FormDataHandler data
+    when 'form' then new FormDataHandler data, call, callback, session
+    when 'messagebox' then new MessageBoxDataHandler data, call, callback, session
     else new WizardDataHandler data
 
 
@@ -179,6 +210,7 @@ Form class
 class Form
   constructor: ->
     @tabs = []
+    @form = null
 
   addTab: (name, text) ->
     tab = new Tab name, text
@@ -213,9 +245,6 @@ class Form
 
 
   render: ->
-    #if @form?
-    #  return @form
-
     content = $('<div>')
       .addClass 'jswizards-form'
 
@@ -267,7 +296,50 @@ class Form
             )
         )
 
+    @form = form
     form
+
+
+class MessageBoxForm extends Form
+  constructor: (@form, @data, @callback) ->
+    null
+
+  render: ->
+    buttons = []
+    that = this
+    switch @data.msgboxButtons
+      when 'OKCancel' then buttons = ['Ok', 'Cancel' ]
+      when 'YesNo' then buttons = ['Yes', 'No' ]
+      when 'YesNoCancel' then buttons = ['Yes', 'No', 'Cancel' ]
+      else buttons = ['Ok']
+    buttonoptions = []
+    $.each buttons, (index, button) ->
+      option =
+        text: button
+        click: ->
+          $(this).dialog "close"
+          $(this).dialog "destroy"
+          that.callback(button)
+      buttonoptions.push option
+
+    iconspaths =
+      Information: '/static/jswizards/icons/information.png'
+      Error: '/static/jswizards/icons/error.png'
+      Warning: '/static/jswizards/icons/warning.png'
+      Question: '/static/jswizards/icons/question.png'
+    $("<div>")
+      .dialog
+        buttons: buttonoptions
+        show: 'slide'
+        modal: true
+        title: @data.title
+      .append($("img").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
+      .append(@data.message)
+    @form
+  
+  serialize: ->
+    true
+
 
 ###
 OldForm Class
