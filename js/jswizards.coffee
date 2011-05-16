@@ -47,7 +47,7 @@ launch = (service, domain, name, extra, callback) ->
     call_ = (command, args_, callback_) ->
       call service, command, args_, callback_
 
-    runWizard session, formData, call_
+    runWizard session, formData, call_, name, domain
 
 ###
 Run a single wizard step
@@ -55,9 +55,9 @@ Run a single wizard step
 
 wizardForm = null
 
-runWizard = (session, initialAction, call) ->
+runWizard = (session, initialAction, call, wizardName, domain) ->
   handleDisplay = (formData, callback) ->
-    datahandler = DataHandler.create formData, call, callback, session
+    datahandler = DataHandler.create formData, call, callback, session, wizardName, domain
     datahandler.render()
     datahandler.registerSubmit()
     datahandler.display()
@@ -91,7 +91,7 @@ runWizard = (session, initialAction, call) ->
   handleAction initialAction_
 
 class DataHandler
-  constructor: (@data, @call, @callback, @session) ->
+  constructor: (@data, @call, @callback, @session, @wizardName, @domain) ->
     @form = null
 
   render: ->
@@ -118,33 +118,55 @@ class DataHandler
           that.callback action
         that.form.close callback_
       false
-
+   
   display: ->
     backgroundId = "floatbox-background-#{ $.now() }"
     boxId = "floatbox-background-#{ $.now() }"
 
-        #this is a hack because floatbox clone's our object's
+    #this is a hack because floatbox clone's our object's
     @form.form.clone = -> return this
 
     $.floatbox
       content: @form.form
-      fade: true
+      fade: false
       buttonPosition: 'none'
 
     $("#floatbox-background").addClass('floatbox-background')
     $("#floatbox-box").addClass('floatbox-box')
 
 
-
+###
+FormDataHandler
+###
 class FormDataHandler extends DataHandler
   getForm: ->
-    @form = new Form
+    @form = new Form this
     tabs = @data.tabs
     for tab in tabs
        tab_ = @form.addTab tab.name, tab.text
        for control in tab.elements
          tab_.addControl control
     return @form
+
+  oncallback: (methodname) ->
+    that = this
+    valid = @form.serialize(this, @data)
+
+    data = @getData()
+    args =
+      domainName: @domain
+      SessionId: @session
+      methodName: methodname
+      wizardName: @wizardName
+      formData: JSON.stringify data
+
+    @call 'callback', args, (data, status) ->
+      log "callback returned", data
+      action = $.parseJSON data
+      callback_ = ->
+        that.callback action
+      that.form.close callback_
+    false
 
   getData: ->
     #TODO fix activetab
@@ -153,7 +175,9 @@ class FormDataHandler extends DataHandler
       activeTab: @data.tabs[0].name
     data
 
-
+###
+Old Style Wizards
+###
 class WizardDataHandler extends DataHandler
   getForm: ->
     form = wizardForm
@@ -196,9 +220,9 @@ class MessageBoxDataHandler extends DataHandler
   display: ->
     null
 
-DataHandler.create = (data, call, callback, session) ->
+DataHandler.create = (data, call, callback, session, wizardName, domain) ->
   switch data.control
-    when 'form' then new FormDataHandler data, call, callback, session
+    when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain
     when 'messagebox' then new MessageBoxDataHandler data, call, callback, session
     else new WizardDataHandler data, call, callback, session
 
@@ -208,12 +232,12 @@ DataHandler.create = (data, call, callback, session) ->
 Form class
 ###
 class Form
-  constructor: ->
+  constructor: (@datahandler) ->
     @tabs = []
     @form = null
 
   addTab: (name, text) ->
-    tab = new Tab name, text
+    tab = new Tab name, text, this
     @tabs.push tab
 
     tab
@@ -236,12 +260,13 @@ class Form
     
 
   close: (callback) ->
-    $("#floatbox-box").fadeOut 200, ->
-      $("#floatbox-box").remove()
-      #TODO Remove background and jqfloatbox-params
-      $('#jqfloatbox-params').remove()
-      callback()
-      $('#floatbox-background').attr('id', '')
+    #$("#floatbox-box").fadeOut 200, ->
+    $("#floatbox-box").remove()
+    #TODO Remove background and jqfloatbox-params
+    $('#jqfloatbox-params').remove()
+    $('#floatbox-background').remove()
+    callback()
+    #$('#floatbox-background').attr('id', '')
 
 
   render: ->
@@ -358,11 +383,11 @@ class WizardForm extends Form
 Tab class
 ###
 class Tab
-  constructor: (@name, @text) ->
+  constructor: (@name, @text, @form) ->
     @controls = []
 
   addControl: (control) ->
-    @controls.push Control.create control
+    @controls.push Control.create control, this
 
   serialize: (elem, tab) ->
     valid = true
@@ -397,7 +422,7 @@ class Tab
 Abstract form control class
 ###
 class Control
-  constructor: (@data) ->
+  constructor: (@data, @tab) ->
     @control = data.control
 
   render: (container) ->
@@ -414,6 +439,15 @@ class Control
         .addClass('error')
       container.append e
 
+   addCallback: (element) ->
+     that = this
+     if @data.callback? and @data.trigger?
+       if @data.trigger == 'change'
+         element.change(-> that.tab.form.datahandler.oncallback(that.data.callback))
+       else if @data.trigger == 'click'
+         element.click(-> that.tab.form.datahandler.oncallback(that.data.callback))
+     true
+     
   serialize: (elem, control) ->
     throw new Error 'Not implemented'
 
@@ -445,8 +479,6 @@ class Control
     container.append $('<span>').html(message).addClass('jswizards-control-helptext')
     true
 
-  #Add Status Error
-  addStatus: (container) ->
 
 ###
 Text Control Class
@@ -454,8 +486,6 @@ Text Control Class
 class TextControl extends Control
   render: (container) ->
     super
-
-    @addStatus container
 
     if not @data.multiline
       i = $('<input>')
@@ -467,6 +497,8 @@ class TextControl extends Control
       .addClass('text')
       .appendTo container
 
+    @addCallback i
+
     if @data.helpText?
       i.attr('placeholder', @data.helpText)
 
@@ -474,7 +506,7 @@ class TextControl extends Control
       i.html(@data.value)
     else if @data.value? and not @data.password
       i.attr('value', @data.value)
-    
+  
     i
 
   serialize: (elem, control) ->
@@ -509,6 +541,8 @@ class NumberControl extends Control
       .attr('name', @data.name)
       .addClass('text')
       .appendTo container
+
+    @addCallback i
 
     if @data.helpText?
       i.attr('placeholder', @data.helpText)
@@ -569,16 +603,17 @@ class DropDownControl extends Control
       .attr('id', @data.name)
       .addClass('jswizards-control-select')
 
+    @addCallback i
+
     sel = @data.value
     oldval = @data.selvalue if @data.selvalue
 
-    indx = 0
     $.each @data.values, (k, v) ->
       o = $('<option>')
-        .attr('value', v)
-        .text(k)
+        .attr('value', k)
+        .text(v)
 
-      if sel == v
+      if sel == k
         o.attr('selected','selected')
 
       indx = indx + 1
@@ -589,7 +624,7 @@ class DropDownControl extends Control
     i
 
   serialize: (elem, control) ->
-    control.value = $("select[id=#{ @data.name }]", elem).val()
+    control.value = $("##{ @data.name }").val()
     true
 
 ###
@@ -607,7 +642,6 @@ class ChoiceControl extends Control
     optname = @data.name
     optsel = @data.value or @data.selectedvalue
 
-    indx = 0
     $.each @data.values, (k, v) ->
       cont = $('<div>')
       o = $('<input>')
@@ -622,6 +656,8 @@ class ChoiceControl extends Control
       o.appendTo cont
       cont.append v[0]
       cont.appendTo i
+
+    @addCallback i
 
     i.appendTo container
 
@@ -670,6 +706,8 @@ class ChoiceMultipleControl extends Control
       cont.append v
       cont.appendTo i
 
+    @addCallback i
+
     i.appendTo container
 
     i
@@ -693,6 +731,44 @@ class ChoiceMultipleControl extends Control
     true
 
 
+###
+Button Control
+###
+class ButtonControl extends Control
+  render: (container) ->    
+    i = $("<button type='button'>") #JQuery refused to add attr "type", and the default is "Submit", which is totally Wrong!!!!
+      .attr("id", @data.name)
+      .html(@data.label)
+
+    @addCallback i
+
+    if @data.helpText?
+      @addHelpText @data.helpText, container
+
+    container.append i
+
+  serialize: (elem, control) ->
+    true
+
+###
+ProgressControl
+###
+class ProgressControl extends Control
+  render: (container) ->
+    
+    i = $("<div>")
+      .attr("id",@data.name)
+      .progressbar({value:@data.value})
+
+    container.append i
+    
+  serialize: (elem, control) ->
+    true
+
+
+###
+DateHelper
+###
 class DateHelper extends Control
   constructor: (@data) ->
     @control = data.control
@@ -728,6 +804,9 @@ class DateHelper extends Control
       .attr('name', @data.name)
       .addClass('jswizards-control-input-date')
     options = { dateFormat: @gettypeformat(), changeYear: true }
+
+    @addCallback i
+
     if @data.minvalue
       options['minDate'] = new Date(@data.minvalue*1000)
     if @data.maxvalue
@@ -768,19 +847,21 @@ class DateControl extends DateHelper
     format = super
     return format.replace("yyyy", "yy")
 
-Control.create = (data) ->
+Control.create = (data, tab) ->
   switch data.control
-    when 'text' then new TextControl data
-    when 'label' then new LabelControl data
-    when 'dropdown' then new DropDownControl data
-    when 'datetime' then new DateTimeControl data
-    when 'date' then new DateControl data
-    when 'option' then new ChoiceControl data
-    when 'optionmultiple' then new ChoiceMultipleControl data
-    when 'number' then new NumberControl data
+    when 'text' then new TextControl data, tab
+    when 'label' then new LabelControl data, tab
+    when 'dropdown' then new DropDownControl data, tab
+    when 'datetime' then new DateTimeControl data, tab
+    when 'date' then new DateControl data, tab
+    when 'option' then new ChoiceControl data, tab
+    when 'optionmultiple' then new ChoiceMultipleControl data, tab
+    when 'number' then new NumberControl data, tab
+    when 'button' then new ButtonControl data, tab
+    when 'progress' then new ProgressControl data, tab
     when 'multiline'
       data.multiline = true
-      new TextControl data
+      new TextControl data, tab
     else throw new Error 'Unknown control type: ' + data.control
 
 

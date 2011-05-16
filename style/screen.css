@@ -1,4 +1,5 @@
-      .ui-corner-tl { -moz-border-radius-topleft: 0px/*{cornerRadius}*/; -webkit-border-top-left-radius: 0px/*{cornerRadius}*/; border-top-left-radius: 0px/*{cornerRadius}*/; }
+
+.ui-corner-tl { -moz-border-radius-topleft: 0px/*{cornerRadius}*/; -webkit-border-top-left-radius: 0px/*{cornerRadius}*/; border-top-left-radius: 0px/*{cornerRadius}*/; }
 .ui-corner-tr { -moz-border-radius-topright: 0px/*{cornerRadius}*/; -webkit-border-top-right-radius: 0px/*{cornerRadius}*/; border-top-right-radius: 0px/*{cornerRadius}*/; }
 .ui-corner-bl { -moz-border-radius-bottomleft: 0px/*{cornerRadius}*/; -webkit-border-bottom-left-radius: 0px/*{cornerRadius}*/; border-bottom-left-radius: 0px/*{cornerRadius}*/; }
 .ui-corner-br { -moz-border-radius-bottomright: 0px/*{cornerRadius}*/; -webkit-border-bottom-right-radius: 0px/*{cornerRadius}*/; border-bottom-right-radius: 0px/*{cornerRadius}*/; }
@@ -13,7 +14,7 @@
 }
 
 .jswizards-form-buttons {
-  padding: 0 1.4em;
+  padding: 0 1.4em; clear:both;
 }
 
 .jswizards-form label {
@@ -41,7 +42,7 @@
 }
 
 .jswizards-control-label {
-  margin-bottom: 1em;
+  margin-bottom: 1em;clear:both;
 }
 .jswizards-control-label-bold {
   font-weight: bold;
@@ -53,6 +54,13 @@
 
 .jswizards-control-dropdown select{
     margin-left: 5px; clear:right;
+}
+
+.jswizards-control-button button{
+    clear:right;
+}
+
+.jswizards-control-progress{
 }
 
 .jswizards-control-helptext{
