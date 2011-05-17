@@ -355,7 +355,6 @@ class MessageBoxForm extends Form
     $("<div>")
       .dialog
         buttons: buttonoptions
-        show: 'slide'
         modal: true
         title: @data.title
       .append($("img").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
@@ -432,7 +431,7 @@ class Control
     if not @data.optional
       l.append $('<span>').text('*').attr('style','color:red; margin-left:2px;')
     container.append l
-    if @data.status? and @data.message?
+    if @data.status? and @data.message? and @data.status == 'Error'
       e = $('<span>')
         .html(@data.message)
         .addClass('jswizards-control-error')
@@ -459,26 +458,26 @@ class Control
 
   #Validates Number (Integer)
   validateNumber: (value) ->
-    if value
+    if value? and @data.control == 'number' and value isnt ""
       return value.toString().search(/^-?[0-9]+$/) == 0
     true
 
-  validateMaxMin: (value, max, min) ->
-    if value isnt ""
-      if parseInt(value)<parseInt(min) or parseInt(value)>parseInt(max)
+  validateMinMax: (value) ->
+    if @data.control == 'number' and @data.minvalue? and @data.maxvalue? and value isnt "" and value?
+      if value < parseInt(@data.minvalue) or value > parseInt(@data.maxvalue)
         return false
     true
 
-  validator: (value, validator) ->
-    if value isnt ""
-      return value.search(validator) == 0
+  checkValidator: (value) ->
+    if @data.validator? and value isnt "" and value?
+      return value.search(@data.validator) == 0
     true
 
   #Help Text
-  addHelpText: (message, container) ->
-    container.append $('<span>').html(message).addClass('jswizards-control-helptext')
+  addHelpText: (container) ->
+    if @data.helpText?
+      container.append $('<span>').html(@data.helpText).addClass('jswizards-control-helptext')
     true
-
 
 ###
 Text Control Class
@@ -493,7 +492,7 @@ class TextControl extends Control
     else
       i = $('<textarea>')
 
-    i.attr('name', @data.name)
+    i.attr('id', @data.name)
       .addClass('text')
       .appendTo container
 
@@ -510,28 +509,37 @@ class TextControl extends Control
     i
 
   serialize: (elem, control) ->
-    element = $("#{ if @data.multiline then 'textarea' else 'input' }[name=#{ @data.name }]", elem)
+    #element = $("#{ if @data.multiline then 'textarea' else 'input' }[name=#{ @data.name }]", elem)
+    element = $("##{ @data.name }")
     value = element.val()
 
     #TODO Enhance validation stuff
     if not @validateOptional value
       element.addClass('error')
-      control.value = undefined
+      control.value = null
       return false
-    else if @data.validator? and not @validator value, @data.validator
+    else if  not @checkValidator value
       element.addClass('error')
-      control.value = undefined
+      control.value = null
+      return false
+    else if not @validateNumber value 
+      element.addClass('error')
+      control.value = null
+      return false
+    else if not @validateMinMax value
+      element.addClass('error')
+      control.value = null
       return false
     
     element.removeClass('error')
-    control.value = value
+    control.value = if @data.control=='number' then parseInt(value) else value
 
     true
 
 
 ###
 Number Control
-###
+
 class NumberControl extends Control
   render: (container) ->
     super
@@ -560,22 +568,22 @@ class NumberControl extends Control
     #Validation goes here !!
     if not @validateOptional(value)
       element.addClass('error')
-      control.value = undefined
+      control.value = null
       return false
-    else if not @validateNumber(value)
+    else if not @validateNumber value 
       element.addClass('error')
-      control.value = undefined
+      control.value = null
       return false
-    else if not @validateMaxMin value, @data.maxvalue, @data.minvalue
+    else if not @validateMinMax value
       element.addClass('error')
-      control.value = undefined
+      control.value = null
       return false
 
     element.removeClass('error')
     control.value = parseFloat(value)
 
     true
-
+###
 
 ###
 Label Control
@@ -596,8 +604,7 @@ class DropDownControl extends Control
   render: (container) ->
     super
 
-    if @data.helpText?
-      @addHelpText @data.helpText, container
+    @addHelpText container
 
     i = $('<select>')
       .attr('id', @data.name)
@@ -608,7 +615,8 @@ class DropDownControl extends Control
     sel = @data.value
     oldval = @data.selvalue if @data.selvalue
 
-    $.each @data.values, (k, v) ->
+    #$.each @data.values, (k, v) ->
+    for k, v of @data.values
       o = $('<option>')
         .attr('value', k)
         .text(v)
@@ -634,16 +642,15 @@ class ChoiceControl extends Control
   render: (container) ->
     super
 
-    if @data.helpText?
-      @addHelpText @data.helpText, container
+    @addHelpText container
 
     i = $('<div>')
 
     optname = @data.name
     optsel = @data.value or @data.selectedvalue
 
-    $.each @data.values, (k, v) ->
-      cont = $('<div>')
+    #$.each @data.values, (k, v) ->
+    for k, v of @data.values
       o = $('<input>')
         .attr('type', 'radio')
         .attr('name', optname)
@@ -653,10 +660,11 @@ class ChoiceControl extends Control
         o.attr('checked','checked')
       indx = indx + 1
       
-      o.appendTo cont
-      cont.append v[0]
-      cont.appendTo i
-
+      $('<div>')
+        .append(o)
+        .append(v[0])
+        .appendTo(i)
+  
     @addCallback i
 
     i.appendTo container
@@ -668,7 +676,7 @@ class ChoiceControl extends Control
     if value
       control.value  = JSON.parse value
     else
-      control.value = undefined 
+      control.value = null 
 
     true
 
@@ -679,8 +687,7 @@ class ChoiceMultipleControl extends Control
   render: (container) ->
     super
 
-    if @data.helpText?
-      @addHelpText @data.helpText, container
+    @addHelpText container
 
     i = $('<div>')
       .attr('for', @data.name)
@@ -689,8 +696,8 @@ class ChoiceMultipleControl extends Control
     optsel = @data.value
 
     indx = 0
-    $.each @data.values, (k, v) ->
-      cont = $('<div>')
+    #$.each @data.values, (k, v) ->
+    for k, v of @data.values
       o = $('<input>')
         .attr('type', 'checkbox')
         .attr('name', optname)
@@ -700,11 +707,11 @@ class ChoiceMultipleControl extends Control
           o.attr('checked','checked')
       else if optsel == k
         o.attr('checked','checked')
-      indx = indx + 1
       
-      o.appendTo cont
-      cont.append v
-      cont.appendTo i
+      $('<div>')
+        .append(o)
+        .append(v)
+        .appendTo(i)
 
     @addCallback i
 
@@ -722,7 +729,7 @@ class ChoiceMultipleControl extends Control
     #Validation goes here !!
     if not @validateOptional value
       element.addClass('error')
-      control.value = undefined
+      control.value = null
       return false
 
     element.removeClass('error')
@@ -742,8 +749,7 @@ class ButtonControl extends Control
 
     @addCallback i
 
-    if @data.helpText?
-      @addHelpText @data.helpText, container
+    @addHelpText container
 
     container.append i
 
@@ -770,12 +776,8 @@ class ProgressControl extends Control
 DateHelper
 ###
 class DateHelper extends Control
-  constructor: (@data) ->
-    @control = data.control
-    @type = null
-    $("<div>").datetimepicker()
 
-  getformat: ->
+  getFormat: ->
     #wizards do format is not compatible with javasript one
     format = @data.format.replace(/Y/g, "y")
       .replace(/M/g, "\0")
@@ -785,25 +787,27 @@ class DateHelper extends Control
       .replace(/h/g, "H")
     return format
 
-  gettypeformat: ->
-    return @getformat()
+  getTypeFormat: ->
+    return @getFormat()
+
+  getType: ->
+    throw new Error 'Not implemented' 
 
   render: (container) ->
     super
 
-    if @data.helpText?
-      @addHelpText @data.helpText, container
+    @addHelpText container
 
     date = null
     if @data.value
-      date = new Date(@data.value*1000).format(@getformat())
+      date = new Date(@data.value*1000).format(@getFormat())
     i = $('<input>')
       .attr('type', 'text')
       .attr('value', date)
       .attr('id', @data.name)
       .attr('name', @data.name)
       .addClass('jswizards-control-input-date')
-    options = { dateFormat: @gettypeformat(), changeYear: true }
+    options = { dateFormat: @getTypeFormat(), changeYear: true }
 
     @addCallback i
 
@@ -811,7 +815,7 @@ class DateHelper extends Control
       options['minDate'] = new Date(@data.minvalue*1000)
     if @data.maxvalue
       options['maxDate'] = new Date(@data.maxvalue*1000)
-    i[@type](options)
+    i[@getType()](options)
       .appendTo container
 
     i
@@ -823,7 +827,7 @@ class DateHelper extends Control
     #TODO Enhance validation stuff
     if not @validateOptional value
       element.addClass('error')
-      control.value = undefined
+      control.value = null
   
       return false
 
@@ -834,16 +838,16 @@ class DateHelper extends Control
     true
 
 class DateTimeControl extends DateHelper
-  constructor: (@data) ->
-    @control = data.control
-    @type = 'datetimepicker'
+
+  getType: ->
+    return 'datetimepicker'
 
 class DateControl extends DateHelper
-  constructor: (@data) ->
-    @control = data.control
-    @type = 'datepicker'
 
-  gettypeformat: ->
+  getType: ->
+    return 'datepicker'
+
+  getTypeFormat: ->
     format = super
     return format.replace("yyyy", "yy")
 
@@ -856,7 +860,7 @@ Control.create = (data, tab) ->
     when 'date' then new DateControl data, tab
     when 'option' then new ChoiceControl data, tab
     when 'optionmultiple' then new ChoiceMultipleControl data, tab
-    when 'number' then new NumberControl data, tab
+    when 'number' then new TextControl data, tab
     when 'button' then new ButtonControl data, tab
     when 'progress' then new ProgressControl data, tab
     when 'multiline'

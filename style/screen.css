@@ -41,6 +41,10 @@
   border-color: #fbc2c4;
 }
 
+.jswizards-control-text {
+  clear:both;
+}
+
 .jswizards-control-label {
   margin-bottom: 1em;clear:both;
 }

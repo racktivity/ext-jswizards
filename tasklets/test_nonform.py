@@ -54,6 +54,12 @@ def main(q, i, p, params, tags):
         result = testcase['method'](question % testcase, **testcase['kwargs'])
         if result != testcase['expected']:
             q.gui.dialog.message("Got wrong result got '%s' was expecting %s" % (result, testcase['expected']));return;
+    
+    q.gui.dialog.showProgress(minvalue=0, maxvalue=100, currentvalue=70)
+
+    q.gui.dialog.askDate("Select Date: ")
+    q.gui.dialog.askDateTime("Select DateTime: ")
+    q.gui.dialog.askMultiline("Enter Multiline: ")
 
 
     #q.gui.dialog.showLogging(
