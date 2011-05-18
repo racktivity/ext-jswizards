@@ -9,6 +9,8 @@ Launch a new wizard
 launch = (service, domain, name, extra, callback) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
 
+  removeEvent()
+
   call = (service, action, args, callback) ->
     args = args ? {}
 
@@ -50,10 +52,20 @@ launch = (service, domain, name, extra, callback) ->
     runWizard session, formData, call_, name, domain
 
 ###
+Register Remove Event
+###
+removeEvent = ->
+  ev = new $.Event('remove')
+  orig = $.fn.remove ->
+    $(this).trigger(ev)
+    orig.apply(this, arguments)
+
+
+###
 Run a single wizard step
 ###
-
 wizardForm = null
+cleanClose = false
 
 runWizard = (session, initialAction, call, wizardName, domain) ->
   handleDisplay = (formData, callback) ->
@@ -120,16 +132,24 @@ class DataHandler
       false
    
   display: ->
-    backgroundId = "floatbox-background-#{ $.now() }"
-    boxId = "floatbox-background-#{ $.now() }"
-
     #this is a hack because floatbox clone's our object's
     @form.form.clone = -> return this
-
+    cleanClose = false
     $.floatbox
       content: @form.form
       fade: false
       buttonPosition: 'none'
+
+    #Register Remove Event for the floatbox
+    that  = this
+    $("#floatbox-box").bind "remove", ->
+      if cleanClose
+        return true
+      wizardForm = null
+      args =
+        sessionId: that.session
+      that.call 'stop', args, (data, status) ->
+        true
 
     $("#floatbox-background").addClass('floatbox-background')
     $("#floatbox-box").addClass('floatbox-box')
@@ -227,7 +247,6 @@ DataHandler.create = (data, call, callback, session, wizardName, domain) ->
     else new WizardDataHandler data, call, callback, session
 
 
-
 ###
 Form class
 ###
@@ -260,13 +279,11 @@ class Form
     
 
   close: (callback) ->
-    #$("#floatbox-box").fadeOut 200, ->
+    cleanClose = true
     $("#floatbox-box").remove()
-    #TODO Remove background and jqfloatbox-params
     $('#jqfloatbox-params').remove()
     $('#floatbox-background').remove()
     callback()
-    #$('#floatbox-background').attr('id', '')
 
 
   render: ->
@@ -368,7 +385,6 @@ class MessageBoxForm extends Form
 ###
 OldForm Class
 ###
-
 class WizardForm extends Form
   
   serialize: (elem, controldata) ->
@@ -376,7 +392,6 @@ class WizardForm extends Form
     control = tab.controls[tab.controls.length-1]
     return control.serialize elem, controldata
   
-
 
 ###
 Tab class
@@ -450,7 +465,6 @@ class Control
   serialize: (elem, control) ->
     throw new Error 'Not implemented'
 
-  #Validates Optional, takes only value, Error response left for the caller (Error CSS, etc...)
   validateOptional: (value) ->
     if not @data.optional and (not value or value == '' or ($.isArray(value) and value.length <= 0))
       return false
@@ -509,7 +523,6 @@ class TextControl extends Control
     i
 
   serialize: (elem, control) ->
-    #element = $("#{ if @data.multiline then 'textarea' else 'input' }[name=#{ @data.name }]", elem)
     element = $("##{ @data.name }")
     value = element.val()
 
@@ -536,54 +549,6 @@ class TextControl extends Control
 
     true
 
-
-###
-Number Control
-
-class NumberControl extends Control
-  render: (container) ->
-    super
-
-    i = $('<input>')
-      .attr('type', 'text')
-      .attr('name', @data.name)
-      .addClass('text')
-      .appendTo container
-
-    @addCallback i
-
-    if @data.helpText?
-      i.attr('placeholder', @data.helpText)
-
-    value = @data.value or @data.defaultvalue
-    if value
-      i.attr('value', value)
-
-    i
-
-  serialize: (elem, control) ->
-    element = $("input[name=#{ @data.name }]", elem)
-    value = element.val()
-
-    #Validation goes here !!
-    if not @validateOptional(value)
-      element.addClass('error')
-      control.value = null
-      return false
-    else if not @validateNumber value 
-      element.addClass('error')
-      control.value = null
-      return false
-    else if not @validateMinMax value
-      element.addClass('error')
-      control.value = null
-      return false
-
-    element.removeClass('error')
-    control.value = parseFloat(value)
-
-    true
-###
 
 ###
 Label Control
@@ -615,7 +580,6 @@ class DropDownControl extends Control
     sel = @data.value
     oldval = @data.selvalue if @data.selvalue
 
-    #$.each @data.values, (k, v) ->
     for k, v of @data.values
       o = $('<option>')
         .attr('value', k)
@@ -624,7 +588,6 @@ class DropDownControl extends Control
       if sel == k
         o.attr('selected','selected')
 
-      indx = indx + 1
       o.appendTo i
 
     i.appendTo container
@@ -649,7 +612,6 @@ class ChoiceControl extends Control
     optname = @data.name
     optsel = @data.value or @data.selectedvalue
 
-    #$.each @data.values, (k, v) ->
     for k, v of @data.values
       o = $('<input>')
         .attr('type', 'radio')
@@ -658,7 +620,6 @@ class ChoiceControl extends Control
       
       if optsel == v[1]
         o.attr('checked','checked')
-      indx = indx + 1
       
       $('<div>')
         .append(o)
@@ -695,8 +656,6 @@ class ChoiceMultipleControl extends Control
     optname = @data.name
     optsel = @data.value
 
-    indx = 0
-    #$.each @data.values, (k, v) ->
     for k, v of @data.values
       o = $('<input>')
         .attr('type', 'checkbox')
