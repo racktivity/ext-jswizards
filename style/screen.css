@@ -80,3 +80,24 @@
     color: red;
     font-size: 0.8em;
 }
+
+.jswizards-error-details {
+    display: block;
+    clear: both;
+    background: #fbe3e4;
+    color: #8a1f11;
+    border-color: #fbc2c4;    
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.jswizards-hide{
+    display: none;    
+}
+
+.jswizards-show{
+    display: block;   
+    background: #fbe3ff;
+    font-family: monospace;
+    border: solid #fbe3e4 0.1em;
+}

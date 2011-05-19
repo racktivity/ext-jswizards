@@ -16,7 +16,7 @@ jQuery.jsonp = (options) ->
       #check if this is our event
       if event.srcElement.src == fullurl
         if error
-          return error(null, 'error', null)
+          return error(null, 'No Details available!', null)
         else
           head.unbind('error', detectError)
     
@@ -81,11 +81,28 @@ launch = (service, domain, name, extra, callback) ->
       success: callback
       error: (data, error) ->
         log(data, error)
-        $("<div title='error'>Error during XHR request:<p>#{ error }</p>").dialog
-          modal: true
-          buttons:
-            Ok: ->
-              $(this) dialog('close') dialog('destroy')
+
+        e = $("<div>")
+          .html("Error Details")
+          .addClass("jswizards-error-details")
+          .append($("<p>").addClass("jswizards-hide").html(error))
+
+        e.click ->
+          p = $("div.jswizards-error-details > p")
+          if p.hasClass("jswizards-hide")
+            p.removeClass("jswizards-hide").addClass("jswizards-show")
+          else
+           p.removeClass("jswizards-show").addClass("jswizards-hide")
+          true
+
+        $("<div title='Server Error'>")
+          .html("The Server Generated an Error!")
+          .append(e)
+          .dialog
+            modal: true
+            buttons:
+              Ok: ->
+                $(this).dialog('close').dialog('destroy')
 
   args =
     domainName: domain
