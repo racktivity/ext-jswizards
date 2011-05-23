@@ -183,6 +183,7 @@ class DataHandler
     that = this
     @form.form.submit (evt) ->
       evt.preventDefault()
+      $('#jswizards-submit').attr('disabled', 'disabled')
       valid = that.form.serialize(this, that.data)
 
       if not valid
@@ -392,6 +393,7 @@ class Form
           .append(
             $('<button>')
               .attr('type', 'submit')
+              .attr('id', 'jswizards-submit')
               .addClass('button positive')
               .text('Submit')
             )
