@@ -183,12 +183,12 @@ class DataHandler
     that = this
     @form.form.submit (evt) ->
       evt.preventDefault()
-      $('#jswizards-submit').attr('disabled', 'disabled')
       valid = that.form.serialize(this, that.data)
 
       if not valid
         throw new Error 'Validation failed'
 
+      $('#jswizards-submit').attr('disabled', 'disabled')
       data = that.getData()
       args =
         result: JSON.stringify data
@@ -571,6 +571,7 @@ class TextControl extends Control
   render: (container) ->
     super
 
+    @addHelpText container
     if not @data.multiline
       i = $('<input>')
         .attr('type', if not @data.password then 'text' else 'password')
@@ -582,9 +583,6 @@ class TextControl extends Control
       .appendTo container
 
     @addCallback i
-
-    if @data.helpText?
-      i.attr('placeholder', @data.helpText)
 
     if @data.value? and @data.multiline
       i.html(@data.value)
