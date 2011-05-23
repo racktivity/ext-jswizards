@@ -24,7 +24,7 @@ jQuery.jsonp = (options) ->
       head.unbind('error', detectError)
       #parse our message
       mydata = jqXHR.responseText.trim()
-      mydata = mydata.substr(jsonpcallback.length+1, mydata.length-1)
+      mydata = mydata.substr(jsonpcallback.length+1, mydata.length-jsonpcallback.length-2)
       mydata = $.parseJSON(mydata)
       if error
         return error(jqXHR, mydata.exception)
@@ -94,7 +94,6 @@ launch = (service, domain, name, extra, callback) ->
           else
            p.removeClass("jswizards-show").addClass("jswizards-hide")
           true
-
         $("<div title='Server Error'>")
           .html("The Server Generated an Error!")
           .append(e)
