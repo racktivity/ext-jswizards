@@ -63,9 +63,13 @@ jQuery.jsonp = (options) ->
       options.cache = true
     return jQuery.ajax(options)
 
+#globals
+wizardForm = null
+wizardend = false
+
 launch = (service, domain, name, extra, callback) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
-
+  wizardend = false
   removeEvent()
 
   call = (service, action, args, callback) ->
@@ -132,8 +136,6 @@ removeEvent = ->
 ###
 Run a single wizard step
 ###
-wizardForm = null
-cleanClose = false
 
 runWizard = (session, initialAction, call, wizardName, domain) ->
   handleDisplay = (formData, callback) ->
@@ -145,6 +147,7 @@ runWizard = (session, initialAction, call, wizardName, domain) ->
   handleEndOfWizard = ->
     # This is an ugly hack
     # Floatbox' API should be fixed. Blergh.
+    wizardend = true
     if $('.floatbox-box').length > 0
       $('.floatbox-box').fadeOut 200, ->
 
@@ -203,7 +206,6 @@ class DataHandler
   display: ->
     #this is a hack because floatbox clone's our object's
     @form.form.clone = -> return this
-    cleanClose = false
     $.floatbox
       content: @form.form
       fade: false
@@ -212,11 +214,12 @@ class DataHandler
     #Register Remove Event for the floatbox
     that  = this
     $("#floatbox-box").bind "remove", ->
-      if cleanClose
+      if wizardend
         return true
       wizardForm = null
       args =
         sessionId: that.session
+      wizardend = true
       that.call 'stop', args, (data, status) ->
         true
 
@@ -348,7 +351,6 @@ class Form
     
 
   close: (callback) ->
-    cleanClose = true
     $("#floatbox-box").remove()
     $('#jqfloatbox-params').remove()
     $('#floatbox-background').remove()
@@ -444,7 +446,7 @@ class MessageBoxForm extends Form
         buttons: buttonoptions
         modal: true
         title: @data.title
-      .append($("img").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
+      .append($("<img>").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
       .append(@data.message)
     @form
   
