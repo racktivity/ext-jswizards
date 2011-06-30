@@ -5,64 +5,6 @@ log = (args...) ->
 ###
 Launch a new wizard
 ###
-jQuery.jsonp = (options) ->
-    fullurl =null
-    head = $('head')
-    success = null
-    error = null
-    jsonpcallback = null
-    
-    detectError = (event, data) ->
-      #check if this is our event
-      if event.srcElement.src == fullurl
-        if error
-          return error(null, 'No Details available!', null)
-        else
-          head.unbind('error', detectError)
-    
-    errorwrapper = (jqXHR, textStatus, data) ->
-      head.unbind('error', detectError)
-      #parse our message
-      mydata = jqXHR.responseText.trim()
-      mydata = mydata.substr(jsonpcallback.length+1, mydata.length-jsonpcallback.length-2)
-      mydata = $.parseJSON(mydata)
-      if error
-        return error(jqXHR, mydata.exception)
-    
-    successwrapper = (data, textStatus, jqXHR) ->
-      head.unbind('error', detectError)
-      log(data)
-      if data and data.error != undefined and data.error
-        if options.error != undefined
-          jqXHR.status = 500
-          jqXHR.statusText = "error"
-          if error
-            return error(jqXHR, 'error', data)
-          else
-            return
-      if success
-          return success(data, textStatus, jqXHR)
-    
-    beforesendwrapper = (jqXHR, settings) ->
-      fullurl = settings.url
-      jsonpcallback = settings.jsonpCallback
-    
-    head.bind('error', detectError)
-    #replace options
-    options.beforeSend = beforesendwrapper
-    success = options.success
-    options.success = successwrapper
-    error = options.error
-    options.error = errorwrapper
-
-    if options.dataType == undefined
-      options.dataType = 'jsonp'
-    if options.jsonp == undefined
-      options.jsonp = 'jsonp_callback'
-    if options.cache == undefined
-      options.cache = true
-    return jQuery.ajax(options)
-
 launch = (service, domain, name, extra, callback) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
 
@@ -71,21 +13,23 @@ launch = (service, domain, name, extra, callback) ->
   call = (service, action, args, callback) ->
     args = args ? {}
 
-    uri = "#{ service }/#{ action }?" + $.param(args)
+    uri = "#{ service }/#{ action }"
 
-    $.jsonp
+    $.ajax
       url: uri
-      dataType: 'jsonp'
-      jsonp: 'jsonp_callback'
+      dataType: 'json'
+      type: 'POST'
+      data: args
       cache: true # cached uses _ which doesn't work with the appserver
       success: callback
       error: (data, error) ->
         log(data, error)
-
+        errorobj = $.parseJSON data.responseText
+        msg = "Message:<br/>" + errorobj['message'] + "<br/>Exception:<br/>" + errorobj['exception']
         e = $("<div>")
           .html("Error Details")
           .addClass("jswizards-error-details")
-          .append($("<p>").addClass("jswizards-hide").html(error))
+          .append($("<p>").addClass("jswizards-hide").html(msg))
 
         e.click ->
           p = $("div.jswizards-error-details > p")
@@ -445,7 +389,7 @@ class MessageBoxForm extends Form
         buttons: buttonoptions
         modal: true
         title: @data.title
-      .append($("img").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
+      .append($("<img>").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
       .append(@data.message)
     @form
   
@@ -539,7 +483,7 @@ class Control
   validateOptional: (value) ->
     if not @data.optional and (not value or value == '' or ($.isArray(value) and value.length <= 0))
       return false
-    true  
+    true
 
   #Validates Number (Integer)
   validateNumber: (value) ->
@@ -679,7 +623,9 @@ class ChoiceControl extends Control
     i = $('<div>')
 
     optname = @data.name
-    optsel = @data.value or @data.selectedvalue
+    optsel = @data.value
+    if optsel == undefined
+      optsel = @data.selectedvalue
 
     for k, v of @data.values
       o = $('<input>')
