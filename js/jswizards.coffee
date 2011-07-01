@@ -61,7 +61,7 @@ launch = (service, domain, name, extra, callback) ->
     call_ = (command, args_, callback_) ->
       call service, command, args_, callback_
 
-    runWizard session, formData, call_, name, domain
+    runWizard session, formData, call_, name, domain, callback
 
 ###
 Register Remove Event
@@ -79,14 +79,14 @@ Run a single wizard step
 wizardForm = null
 cleanClose = false
 
-runWizard = (session, initialAction, call, wizardName, domain) ->
+runWizard = (session, initialAction, call, wizardName, domain, cb) ->
   handleDisplay = (formData, callback) ->
     datahandler = DataHandler.create formData, call, callback, session, wizardName, domain
     datahandler.render()
     datahandler.registerSubmit()
     datahandler.display()
 
-  handleEndOfWizard = ->
+  handleEndOfWizard = (result) ->
     # This is an ugly hack
     # Floatbox' API should be fixed. Blergh.
     if $('.floatbox-box').length > 0
@@ -104,12 +104,15 @@ runWizard = (session, initialAction, call, wizardName, domain) ->
         $('.floatbox-background').remove()
     wizardForm = null
 
+    if cb
+      cb result
+
   initialAction_ = $.parseJSON(initialAction)
 
   handleAction = (action) ->
     switch action.action
       when 'display' then handleDisplay action.params, handleAction
-      when 'endofwizard' then handleEndOfWizard()
+      when 'endofwizard' then handleEndOfWizard action.result
       else throw new Error 'Unknown action type'
 
   handleAction initialAction_
@@ -143,7 +146,7 @@ class DataHandler
           that.callback action
         that.form.close callback_
       false
-   
+
   display: ->
     #this is a hack because floatbox clone's our object's
     @form.form.clone = -> return this
@@ -242,7 +245,7 @@ class MessageBoxDataHandler extends DataHandler
       that.call 'result', args, (data, status) ->
         action = $.parseJSON data
         that.callback action
- 
+
     new MessageBoxForm wizardForm, @data, callback
 
   getData: ->
@@ -290,7 +293,7 @@ class Form
       valid &= tab.serialize elem, tab_
 
     valid
-    
+
 
   close: (callback) ->
     cleanClose = true
@@ -392,7 +395,7 @@ class MessageBoxForm extends Form
       .append($("<img>").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
       .append(@data.message)
     @form
-  
+
   serialize: ->
     true
 
@@ -401,12 +404,12 @@ class MessageBoxForm extends Form
 OldForm Class
 ###
 class WizardForm extends Form
-  
+
   serialize: (elem, controldata) ->
     tab = @tabs[@tabs.length-1]
     control = tab.controls[tab.controls.length-1]
     return control.serialize elem, controldata
-  
+
 
 ###
 Tab class
@@ -476,7 +479,7 @@ class Control
        else if @data.trigger == 'click'
          element.click(-> that.tab.form.datahandler.oncallback(that.data.callback))
      true
-     
+
   serialize: (elem, control) ->
     throw new Error 'Not implemented'
 
@@ -532,7 +535,7 @@ class TextControl extends Control
       i.html(@data.value)
     else if @data.value? and not @data.password
       i.attr('value', @data.value)
-  
+
     i
 
   serialize: (elem, control) ->
@@ -548,7 +551,7 @@ class TextControl extends Control
       element.addClass('error')
       control.value = null
       return false
-    else if not @validateNumber value 
+    else if not @validateNumber value
       element.addClass('error')
       control.value = null
       return false
@@ -556,7 +559,7 @@ class TextControl extends Control
       element.addClass('error')
       control.value = null
       return false
-    
+
     element.removeClass('error')
     control.value = if @data.control=='number' then parseInt(value) else value
 
@@ -632,15 +635,15 @@ class ChoiceControl extends Control
         .attr('type', 'radio')
         .attr('name', optname)
         .attr('value', JSON.stringify v[1])
-      
+
       if optsel == v[1]
         o.attr('checked','checked')
-      
+
       $('<div>')
         .append(o)
         .append(v[0])
         .appendTo(i)
-  
+
     @addCallback i
 
     i.appendTo container
@@ -652,7 +655,7 @@ class ChoiceControl extends Control
     if value
       control.value  = JSON.parse value
     else
-      control.value = null 
+      control.value = null
 
     true
 
@@ -681,7 +684,7 @@ class ChoiceMultipleControl extends Control
           o.attr('checked','checked')
       else if optsel == k
         o.attr('checked','checked')
-      
+
       $('<div>')
         .append(o)
         .append(v)
@@ -716,7 +719,7 @@ class ChoiceMultipleControl extends Control
 Button Control
 ###
 class ButtonControl extends Control
-  render: (container) ->    
+  render: (container) ->
     i = $("<button type='button'>") #JQuery refused to add attr "type", and the default is "Submit", which is totally Wrong!!!!
       .attr("id", @data.name)
       .html(@data.label)
@@ -735,13 +738,13 @@ ProgressControl
 ###
 class ProgressControl extends Control
   render: (container) ->
-    
+
     i = $("<div>")
       .attr("id",@data.name)
       .progressbar({value:@data.value})
 
     container.append i
-    
+
   serialize: (elem, control) ->
     true
 
@@ -765,7 +768,7 @@ class DateHelper extends Control
     return @getFormat()
 
   getType: ->
-    throw new Error 'Not implemented' 
+    throw new Error 'Not implemented'
 
   render: (container) ->
     super
@@ -802,7 +805,7 @@ class DateHelper extends Control
     if not @validateOptional value
       element.addClass('error')
       control.value = null
-  
+
       return false
 
     value = new Date(value).getTime()/1000
