@@ -5,9 +5,10 @@ log = (args...) ->
 ###
 Launch a new wizard
 ###
+usesdomain = true
 launch = (service, domain, name, extra, callback) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
-
+  usesdomain = domain.match(/\w{8}-(\w{4}-){3}\w{12}/g) == null
   removeEvent()
 
   call = (service, action, args, callback) ->
@@ -48,8 +49,9 @@ launch = (service, domain, name, extra, callback) ->
                 $(this).dialog('close').dialog('destroy')
 
   args =
-    domainName: domain
     wizardName: name
+  firstarg = if usesdomain then "domainName" else "customerGuid"
+  args[firstarg] = domain
 
   args.extra = extra if extra?
 
@@ -191,11 +193,12 @@ class FormDataHandler extends DataHandler
 
     data = @getData()
     args =
-      domainName: @domain
       SessionId: @session
       methodName: methodname
       wizardName: @wizardName
       formData: JSON.stringify data
+    if usesdomain
+      args["domainName"] = @domain
 
     @call 'callback', args, (data, status) ->
       log "callback returned", data
@@ -598,7 +601,7 @@ class DropDownControl extends Control
 
     for k, v of @data.values
       o = $('<option>')
-        .attr('value', k)
+      o.attr('value', k)
         .text(v)
 
       if sel == k
@@ -632,7 +635,7 @@ class ChoiceControl extends Control
 
     for k, v of @data.values
       o = $('<input>')
-        .attr('type', 'radio')
+      o.attr('type', 'radio')
         .attr('name', optname)
         .attr('value', JSON.stringify v[1])
 
@@ -833,6 +836,7 @@ Control.create = (data, tab) ->
     when 'text' then new TextControl data, tab
     when 'label' then new LabelControl data, tab
     when 'dropdown' then new DropDownControl data, tab
+    when 'dropdownext' then new DropDownControl data, tab
     when 'datetime' then new DateTimeControl data, tab
     when 'date' then new DateControl data, tab
     when 'option' then new ChoiceControl data, tab
