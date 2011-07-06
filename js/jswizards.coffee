@@ -738,17 +738,21 @@ ProgressControl
 ###
 class ProgressControl extends Control
   render: (container) ->
-    
-    i = $("<div>")
-      .attr("id",@data.name)
-      .progressbar({value:@data.value})
-
-    container.append i
+    @data.value = document.href
     
   serialize: (elem, control) ->
     true
 
-
+###
+NavigateControl
+###
+class NavigateControl extends Control
+  render: (container) ->
+    document.location = @data.url
+    
+  serialize: (elem, control) ->
+    true
+    
 ###
 DateHelper
 ###
@@ -841,6 +845,7 @@ Control.create = (data, tab) ->
     when 'number' then new TextControl data, tab
     when 'button' then new ButtonControl data, tab
     when 'progress' then new ProgressControl data, tab
+    when 'navigate' then new NavigateControl data, tab
     when 'multiline'
       data.multiline = true
       new TextControl data, tab
