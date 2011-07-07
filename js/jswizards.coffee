@@ -233,6 +233,19 @@ class WizardDataHandler extends DataHandler
   getData: ->
     @data.value
 
+class NavigateDataHandler extends DataHandler
+  getForm: ->
+    document.location = @data.url
+    class Dummy
+      render: ->
+        true
+    new Dummy()
+
+
+
+  getData: ->
+    @data.url
+
 
 class MessageBoxDataHandler extends DataHandler
   getForm: ->
@@ -261,6 +274,7 @@ DataHandler.create = (data, call, callback, session, wizardName, domain) ->
   switch data.control
     when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain
     when 'messagebox' then new MessageBoxDataHandler data, call, callback, session
+    when 'navigate' then new NavigateDataHandler data, call, callback, session
     else new WizardDataHandler data, call, callback, session
 
 
@@ -743,16 +757,7 @@ class ProgressControl extends Control
   serialize: (elem, control) ->
     true
 
-###
-NavigateControl
-###
-class NavigateControl extends Control
-  render: (container) ->
-    document.location = @data.url
-    
-  serialize: (elem, control) ->
-    true
-    
+   
 ###
 DateHelper
 ###
@@ -845,7 +850,6 @@ Control.create = (data, tab) ->
     when 'number' then new TextControl data, tab
     when 'button' then new ButtonControl data, tab
     when 'progress' then new ProgressControl data, tab
-    when 'navigate' then new NavigateControl data, tab
     when 'multiline'
       data.multiline = true
       new TextControl data, tab
