@@ -17,6 +17,14 @@
   padding: 0 1.4em; clear:both;
 }
 
+.jswizards-form-buttons button {
+  margin: 3px;
+}
+
+.jswizards-form {
+  margin: 3px;
+}
+
 .jswizards-form label {
 }
 .jswizards-form input.text, .jswizards-form textarea.text {
@@ -52,7 +60,7 @@
   font-weight: bold;
 }
 .jswizards-control-input-date {
-  width: 120px; 
+  width: 120px;
   margin-left: 5px;
 }
 
@@ -86,17 +94,17 @@
     clear: both;
     background: #fbe3e4;
     color: #8a1f11;
-    border-color: #fbc2c4;    
+    border-color: #fbc2c4;
     cursor: pointer;
     margin-top: 20px;
 }
 
 .jswizards-hide{
-    display: none;    
+    display: none;
 }
 
 .jswizards-show{
-    display: block;   
+    display: block;
     background: #fbe3ff;
     font-family: monospace;
     border: solid #fbe3e4 0.1em;
