@@ -544,7 +544,7 @@ class TextControl extends Control
     i
 
   serialize: (elem, control) ->
-    element = $("##{ @data.name }")
+    element = $("##{ @data.name }", elem)
     value = element.val()
 
     #TODO Enhance validation stuff
