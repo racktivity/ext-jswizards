@@ -6,7 +6,7 @@ log = (args...) ->
 Launch a new wizard
 ###
 usesdomain = true
-launch = (service, domain, name, extra, callback) ->
+launch = (service, domain, name, extra, callback, cancelCallback) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
   usesdomain = domain.match(/\w{8}-(\w{4}-){3}\w{12}/g) == null
   removeEvent()
@@ -63,7 +63,7 @@ launch = (service, domain, name, extra, callback) ->
     call_ = (command, args_, callback_) ->
       call service, command, args_, callback_
 
-    runWizard session, formData, call_, name, domain, callback
+    runWizard session, formData, call_, name, domain, callback, cancelCallback
 
 ###
 Register Remove Event
@@ -81,9 +81,9 @@ Run a single wizard step
 wizardForm = null
 cleanClose = false
 
-runWizard = (session, initialAction, call, wizardName, domain, cb) ->
+runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback) ->
   handleDisplay = (formData, callback) ->
-    datahandler = DataHandler.create formData, call, callback, session, wizardName, domain
+    datahandler = DataHandler.create formData, call, callback, session, wizardName, domain, cancelCallback
     datahandler.render()
     datahandler.registerSubmit()
     datahandler.display()
@@ -120,7 +120,7 @@ runWizard = (session, initialAction, call, wizardName, domain, cb) ->
   handleAction initialAction_
 
 class DataHandler
-  constructor: (@data, @call, @callback, @session, @wizardName, @domain) ->
+  constructor: (@data, @call, @callback, @session, @wizardName, @domain, @cancelCallback) ->
     @form = null
 
   render: ->
@@ -168,6 +168,8 @@ class DataHandler
       args =
         sessionId: that.session
       that.call 'stop', args, (data, status) ->
+        if that.cancelCallback
+          that.cancelCallback
         true
 
     $("#floatbox-background").addClass('floatbox-background')
@@ -260,11 +262,11 @@ class MessageBoxDataHandler extends DataHandler
   display: ->
     null
 
-DataHandler.create = (data, call, callback, session, wizardName, domain) ->
+DataHandler.create = (data, call, callback, session, wizardName, domain, cancelCallback) ->
   switch data.control
-    when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain
-    when 'messagebox' then new MessageBoxDataHandler data, call, callback, session
-    else new WizardDataHandler data, call, callback, session
+    when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain, cancelCallback
+    when 'messagebox' then new MessageBoxDataHandler data, call, callback, session, undefined, undefined, cancelCallback
+    else new WizardDataHandler data, call, callback, session, undefined, undefined, cancelCallback
 
 
 ###
@@ -542,7 +544,7 @@ class TextControl extends Control
     i
 
   serialize: (elem, control) ->
-    element = $("##{ @data.name }")
+    element = $("##{ @data.name }", elem)
     value = element.val()
 
     #TODO Enhance validation stuff
