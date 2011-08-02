@@ -238,6 +238,19 @@ class WizardDataHandler extends DataHandler
   getData: ->
     @data.value
 
+class NavigateDataHandler extends DataHandler
+  getForm: ->
+    document.location = @data.url
+    class Dummy
+      render: ->
+        true
+    new Dummy()
+
+
+
+  getData: ->
+    @data.url
+
 
 class MessageBoxDataHandler extends DataHandler
   getForm: ->
@@ -266,6 +279,7 @@ DataHandler.create = (data, call, callback, session, wizardName, domain, cancelC
   switch data.control
     when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain, cancelCallback
     when 'messagebox' then new MessageBoxDataHandler data, call, callback, session, undefined, undefined, cancelCallback
+    when 'navigate' then new NavigateDataHandler data, call, callback, session
     else new WizardDataHandler data, call, callback, session, undefined, undefined, cancelCallback
 
 
@@ -743,13 +757,8 @@ ProgressControl
 ###
 class ProgressControl extends Control
   render: (container) ->
-
-    i = $("<div>")
-      .attr("id",@data.name)
-      .progressbar({value:@data.value})
-
-    container.append i
-
+    @data.value = document.href
+    
   serialize: (elem, control) ->
     true
 
