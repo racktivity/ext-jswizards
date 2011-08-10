@@ -191,7 +191,7 @@ class FormDataHandler extends DataHandler
 
   oncallback: (methodname) ->
     that = this
-    valid = @form.serialize(this, @data)
+    valid = @form.serialize(@form.form, @data)
 
     data = @getData()
     args =
