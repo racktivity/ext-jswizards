@@ -82,10 +82,12 @@ def main(q,i,params,tags):
     form = q.gui.form.createForm()
     # Add tab
     tab = form.addTab('tab_main', 'Demo Wizard - Selection with Callbacks')
+    tab2 = form.addTab('tab_test', 'lozer tab')
 
     # Add Drop Down
     selval = {"s0":"Select Category Type", "s1":"Software", "s2":"Hardware"}
     tab.addDropDown('dds_name', 'Please Select Category', selval, "s0", helpText='Please Select Category from the Drop Down menu', trigger='change', callback='get_names')
+    tab2.addDropDown('dds_name_', 'Please Select Category', selval, "s0", helpText='Please Select Category from the Drop Down menu', trigger='change', callback='get_names')
 
     # Add textbox
     tab.addText('txtc_name', 'The Employee name is', multiline=False, validator=None, status='', trigger=None, callback=None, helpText='Name of the employee will appear here!', optional=False)

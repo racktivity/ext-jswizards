@@ -211,10 +211,9 @@ class FormDataHandler extends DataHandler
     false
 
   getData: ->
-    #TODO fix activetab
     data =
       tabs: @data.tabs
-      activeTab: @data.tabs[0].name
+      activeTab: @data.tabs[@form.form.find(".ui-tabs").tabs("option", "selected")].name
     data
 
 ###
@@ -330,7 +329,9 @@ class Form
       .addClass 'jswizards-tabs'
 
     content.append(tabsPanel)
-
+    idx = 0
+    tabidx = 0
+    activetabname = @datahandler.data.activeTab
     for tab in @tabs
       tabsPanel.append(
         $('<li>').append(
@@ -342,6 +343,9 @@ class Form
             )
           )
         )
+      if tab.name == activetabname
+        tabidx = idx
+      idx++
 
       content.append(
         tab.render()
@@ -349,7 +353,7 @@ class Form
           .addClass 'jswizards-tab'
         )
 
-    content.tabs()
+    content.tabs({selected: tabidx})
 
     form = $('<form>')
       .append(content)
@@ -475,10 +479,11 @@ Abstract form control class
 class Control
   constructor: (@data, @tab) ->
     @control = data.control
+    @id = "#{@tab.name}-#{@data.name}"
 
   render: (container) ->
     l = $('<label>')
-      .attr('for', @data.name)
+      .attr('for', @id)
       .text(@data.text)
     if not @data.optional
       l.append $('<span>').text('*').attr('style','color:red; margin-left:2px;')
@@ -544,7 +549,7 @@ class TextControl extends Control
     else
       i = $('<textarea>')
 
-    i.attr('id', @data.name)
+    i.attr('id', @id)
       .addClass('text')
       .appendTo container
 
@@ -558,7 +563,7 @@ class TextControl extends Control
     i
 
   serialize: (elem, control) ->
-    element = $("##{ @data.name }", elem)
+    element = $("##{ @id }", elem)
     value = element.val()
 
     #TODO Enhance validation stuff
@@ -607,7 +612,7 @@ class DropDownControl extends Control
     @addHelpText container
 
     i = $('<select>')
-      .attr('id', @data.name)
+      .attr('id', @id)
       .addClass('jswizards-control-select')
 
     @addCallback i
@@ -620,7 +625,7 @@ class DropDownControl extends Control
       o.attr('value', k)
         .text(v)
 
-      if sel == k
+      if sel == k.toString()
         o.attr('selected','selected')
 
       o.appendTo i
@@ -630,7 +635,7 @@ class DropDownControl extends Control
     i
 
   serialize: (elem, control) ->
-    control.value = $("##{ @data.name }").val()
+    control.value = $("##{ @id }").val()
     true
 
 ###
@@ -644,7 +649,7 @@ class ChoiceControl extends Control
 
     i = $('<div>')
 
-    optname = @data.name
+    optname = @id
     optsel = @data.value
     if optsel == undefined
       optsel = @data.selectedvalue
@@ -670,7 +675,7 @@ class ChoiceControl extends Control
     i
 
   serialize: (elem, control) ->
-    value = $("input[name=#{ @data.name }]:checked", elem).val()
+    value = $("input[name=#{ @id }]:checked", elem).val()
     if value
       control.value  = JSON.parse value
     else
@@ -688,9 +693,9 @@ class ChoiceMultipleControl extends Control
     @addHelpText container
 
     i = $('<div>')
-      .attr('for', @data.name)
+      .attr('for', @id)
 
-    optname = @data.name
+    optname = @id
     optsel = @data.value
 
     for k, v of @data.values
@@ -716,9 +721,9 @@ class ChoiceMultipleControl extends Control
     i
 
   serialize: (elem, control) ->
-    element = $("div[htmlfor=#{ @data.name }]")
+    element = $("div[htmlfor=#{ @id }]")
     value = new Array()
-    $("input[name=#{ @data.name }]:checked").each ->
+    $("input[name=#{ @id }]:checked").each ->
       value.push $(this).val()
       true
 
@@ -740,7 +745,7 @@ Button Control
 class ButtonControl extends Control
   render: (container) ->
     i = $("<button type='button'>") #JQuery refused to add attr "type", and the default is "Submit", which is totally Wrong!!!!
-      .attr("id", @data.name)
+      .attr("id", @id)
       .html(@data.label)
 
     @addCallback i
@@ -795,8 +800,8 @@ class DateHelper extends Control
     i = $('<input>')
       .attr('type', 'text')
       .attr('value', date)
-      .attr('id', @data.name)
-      .attr('name', @data.name)
+      .attr('id', @id)
+      .attr('name', @id)
       .addClass('jswizards-control-input-date')
     options = { dateFormat: @getTypeFormat(), changeYear: true }
 
@@ -812,7 +817,7 @@ class DateHelper extends Control
     i
 
   serialize: (elem, control) ->
-    element = $("input[name=#{ @data.name }]", elem)
+    element = $("input[name=#{ @id }]", elem)
     value = element.val()
 
     #TODO Enhance validation stuff
