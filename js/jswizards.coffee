@@ -488,7 +488,7 @@ class Control
     if not @data.optional
       l.append $('<span>').text('*').attr('style','color:red; margin-left:2px;')
     container.append l
-    if @data.status? and @data.message? and @data.status == 'Error'
+    if @data.status? and @data.message? and @data.status.toLowerCase() == 'error'
       e = $('<span>')
         .html(@data.message)
         .addClass('jswizards-control-error')
