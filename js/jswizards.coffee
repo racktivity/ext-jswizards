@@ -596,7 +596,7 @@ Label Control
 class LabelControl extends Control
   render: (container) ->
     l = $('<label>')
-      .text(@data.text)
+      .html(@data.text)
       .appendTo container
 
   serialize: (elem, control) ->
