@@ -620,7 +620,7 @@ class DropDownControl extends Control
     sel = @data.value
     oldval = @data.selvalue if @data.selvalue
 
-    for k, v of @data.values
+    addValue = (k, v) ->
       o = $('<option>')
       o.attr('value', k)
         .text(v)
@@ -629,6 +629,17 @@ class DropDownControl extends Control
         o.attr('selected','selected')
 
       o.appendTo i
+
+    if $.isArray(@data.values)
+      for item in @data.values
+        if $.isArray(item)
+          addValue(item[0], item[1])
+        else
+          for k, v of item
+            addValue(k, v)
+    else
+      for k, v of @data.values
+        addValue(k, v)
 
     i.appendTo container
 
@@ -654,19 +665,31 @@ class ChoiceControl extends Control
     if optsel == undefined
       optsel = @data.selectedvalue
 
-    for k, v of @data.values
+
+    addValue = (k, v) ->
       o = $('<input>')
       o.attr('type', 'radio')
         .attr('name', optname)
-        .attr('value', JSON.stringify v[1])
+        .attr('value', JSON.stringify k)
 
-      if optsel == v[1]
+      if optsel == k
         o.attr('checked','checked')
 
       $('<div>')
         .append(o)
-        .append(v[0])
+        .append(v)
         .appendTo(i)
+
+    if $.isArray(@data.values)
+      for item in @data.values
+        if $.isArray(item)
+          addValue(item[0], item[1])
+        else
+          for k, v of item
+            addValue(k, v)
+    else
+      for k, v of @data.values
+        addValue(k, v)
 
     @addCallback i
 
@@ -698,7 +721,7 @@ class ChoiceMultipleControl extends Control
     optname = @id
     optsel = @data.value
 
-    for k, v of @data.values
+    addValue = (k, v) ->
       o = $('<input>')
         .attr('type', 'checkbox')
         .attr('name', optname)
@@ -713,6 +736,17 @@ class ChoiceMultipleControl extends Control
         .append(o)
         .append(v)
         .appendTo(i)
+
+    if $.isArray(@data.values)
+      for item in @data.values
+        if $.isArray(item)
+          addValue(item[0], item[1])
+        else
+          for k, v of item
+            addValue(k, v)
+    else
+      for k, v of @data.values
+        addValue(k, v)
 
     @addCallback i
 
@@ -763,7 +797,7 @@ ProgressControl
 class ProgressControl extends Control
   render: (container) ->
     @data.value = document.href
-    
+
   serialize: (elem, control) ->
     true
 
