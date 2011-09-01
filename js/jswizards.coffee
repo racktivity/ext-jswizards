@@ -557,7 +557,7 @@ class TextControl extends Control
 
     if @data.value? and @data.multiline
       i.html(@data.value)
-    else if @data.value? and not @data.password
+    else if @data.value?
       i.attr('value', @data.value)
 
     i
