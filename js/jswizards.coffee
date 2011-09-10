@@ -63,7 +63,7 @@ launch = (service, domain, name, extra, callback, cancelCallback) ->
     call_ = (command, args_, callback_) ->
       call service, command, args_, callback_
 
-    runWizard session, formData, call_, name, domain, callback, cancelCallback
+    runWizard session, formData, call_, name, domain, callback, cancelCallback, args.extra
 
 ###
 Register Remove Event
@@ -81,9 +81,9 @@ Run a single wizard step
 wizardForm = null
 cleanClose = false
 
-runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback) ->
+runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback, extra) ->
   handleDisplay = (formData, callback) ->
-    datahandler = DataHandler.create formData, call, callback, session, wizardName, domain, cancelCallback
+    datahandler = DataHandler.create formData, call, callback, session, wizardName, domain, cancelCallback, extra
     datahandler.render()
     datahandler.registerSubmit()
     datahandler.display()
@@ -120,7 +120,7 @@ runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallbac
   handleAction initialAction_
 
 class DataHandler
-  constructor: (@data, @call, @callback, @session, @wizardName, @domain, @cancelCallback) ->
+  constructor: (@data, @call, @callback, @session, @wizardName, @domain, @cancelCallback, @extra) ->
     @form = null
 
   render: ->
@@ -198,6 +198,7 @@ class FormDataHandler extends DataHandler
       SessionId: @session
       methodName: methodname
       wizardName: @wizardName
+      extra: @extra
       formData: JSON.stringify data
     if usesdomain
       args["domainName"] = @domain
@@ -274,9 +275,9 @@ class MessageBoxDataHandler extends DataHandler
   display: ->
     null
 
-DataHandler.create = (data, call, callback, session, wizardName, domain, cancelCallback) ->
+DataHandler.create = (data, call, callback, session, wizardName, domain, cancelCallback, extra) ->
   switch data.control
-    when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain, cancelCallback
+    when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain, cancelCallback, extra
     when 'messagebox' then new MessageBoxDataHandler data, call, callback, session, undefined, undefined, cancelCallback
     when 'navigate' then new NavigateDataHandler data, call, callback, session
     else new WizardDataHandler data, call, callback, session, undefined, undefined, cancelCallback
