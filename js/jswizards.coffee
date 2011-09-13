@@ -567,20 +567,34 @@ class TextControl extends Control
     element = $("##{ @id }", elem)
     value = element.val()
 
+    ensureTab = (tab) ->
+      if tab.form.datahandler.getData().activeTab != tab.name
+          i = 0
+          for localTab in tab.form.tabs
+            if localTab == tab
+              tab.form.form.find(".ui-tabs").tabs("select", i)
+              return
+            i += 1
+
+
     #TODO Enhance validation stuff
     if not @validateOptional value
+      ensureTab(this.tab)
       element.addClass('error')
       control.value = null
       return false
     else if  not @checkValidator value
+      ensureTab(this.tab)
       element.addClass('error')
       control.value = null
       return false
     else if not @validateNumber value
+      ensureTab(this.tab)
       element.addClass('error')
       control.value = null
       return false
     else if not @validateMinMax value
+      ensureTab(this.tab)
       element.addClass('error')
       control.value = null
       return false
