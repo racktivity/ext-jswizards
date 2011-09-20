@@ -131,7 +131,7 @@ class DataHandler
     that = this
     @form.form.submit (evt) ->
       evt.preventDefault()
-      valid = that.form.serialize(this, that.data)
+      valid = that.form.serialize(this, that.data, true)
 
       if not valid
         throw new Error 'Validation failed'
@@ -191,7 +191,7 @@ class FormDataHandler extends DataHandler
 
   oncallback: (methodname) ->
     that = this
-    valid = @form.serialize(@form.form, @data)
+    valid = @form.serialize(@form.form, @data, false)
 
     data = @getData()
     args =
@@ -297,7 +297,7 @@ class Form
 
     tab
 
-  serialize: (elem, form) ->
+  serialize: (elem, form, validate) ->
     valid = true
 
     for tab in @tabs
@@ -309,7 +309,7 @@ class Form
           tab_ = _tab
 
       throw new Error 'Tab not found' if not tab_?
-      valid &= tab.serialize elem, tab_
+      valid &= tab.serialize elem, tab_, validate
 
     valid
 
@@ -445,7 +445,7 @@ class Tab
   addControl: (control) ->
     @controls.push Control.create control, this
 
-  serialize: (elem, tab) ->
+  serialize: (elem, tab, validate) ->
     valid = true
 
     for control in @controls
@@ -457,7 +457,7 @@ class Tab
           control_ = _control
 
       throw new Error 'Control not found' if not control_?
-      valid &= control.serialize elem, control_
+      valid &= control.serialize elem, control_, validate
 
     valid
 
@@ -563,11 +563,13 @@ class TextControl extends Control
 
     i
 
-  serialize: (elem, control) ->
+  serialize: (elem, control, validate) ->
     element = $("##{ @id }", elem)
     value = element.val()
 
     ensureTab = (tab) ->
+      if not validate
+        return
       if tab.form.datahandler.getData().activeTab != tab.name
           i = 0
           for localTab in tab.form.tabs
