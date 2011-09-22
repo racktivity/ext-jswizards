@@ -137,6 +137,7 @@ class DataHandler
         throw new Error 'Validation failed'
 
       $('#jswizards-submit').attr('disabled', 'disabled')
+      $('#imgLoader').css('visibility', 'inherit')
       data = that.getData()
       args =
         result: JSON.stringify data
@@ -326,6 +327,14 @@ class Form
     content = $('<div>')
       .addClass 'jswizards-form'
 
+    loader = $('<img>')
+      .attr('src', 'img/ajax-loader.gif')
+      .attr('id','imgLoader')
+      .css('float', 'right')
+      .css('visibility', 'hidden')
+
+    content.append(loader)
+    
     tabsPanel = $('<ul>')
       .addClass 'jswizards-tabs'
 
