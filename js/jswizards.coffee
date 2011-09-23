@@ -29,7 +29,7 @@ launch = (service, domain, name, extra, callback, cancelCallback) ->
         msgp = $("<p>").addClass("jswizards-hide")
           .append($("<p>").html("Message: " + errorobj['message']))
           .append($("<p>").html("Exception: "))
-          .append($("<p>").text(errorobj['exception']))
+          .append($("<p>", {'style': 'white-space:pre;'}).text(errorobj['exception'].replace(/\\n/g, "\n")))
         e = $("<div>")
           .html("Error Details")
           .addClass("jswizards-error-details")

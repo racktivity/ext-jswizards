@@ -109,3 +109,7 @@
     font-family: monospace;
     border: solid #fbe3e4 0.1em;
 }
+
+.jswizards-error-details p p {
+    margin-bottom: 0px!important;
+}
