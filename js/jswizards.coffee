@@ -26,11 +26,14 @@ launch = (service, domain, name, extra, callback, cancelCallback) ->
       error: (data, error) ->
         log(data, error)
         errorobj = $.parseJSON data.responseText
-        msg = "Message:<br/>" + errorobj['message'] + "<br/>Exception:<br/>" + errorobj['exception']
+        msgp = $("<p>").addClass("jswizards-hide")
+          .append($("<p>").html("Message: " + errorobj['message']))
+          .append($("<p>").html("Exception: "))
+          .append($("<p>").text(errorobj['exception']))
         e = $("<div>")
           .html("Error Details")
           .addClass("jswizards-error-details")
-          .append($("<p>").addClass("jswizards-hide").html(msg))
+          .append(msgp)
 
         e.click ->
           p = $("div.jswizards-error-details > p")
