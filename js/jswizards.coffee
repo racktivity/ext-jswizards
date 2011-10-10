@@ -6,7 +6,7 @@ log = (args...) ->
 Launch a new wizard
 ###
 usesdomain = true
-launch = (service, domain, name, extra, callback, cancelCallback) ->
+launch = (service, domain, name, extra, callback, cancelCallback, refresh=true) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
   usesdomain = domain.match(/\w{8}-(\w{4}-){3}\w{12}/g) == null
   removeEvent()
@@ -66,7 +66,7 @@ launch = (service, domain, name, extra, callback, cancelCallback) ->
     call_ = (command, args_, callback_) ->
       call service, command, args_, callback_
 
-    runWizard session, formData, call_, name, domain, callback, cancelCallback, args.extra
+    runWizard session, formData, call_, name, domain, callback, cancelCallback, args.extra, refresh
 
 ###
 Register Remove Event
@@ -84,7 +84,7 @@ Run a single wizard step
 wizardForm = null
 cleanClose = false
 
-runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback, extra) ->
+runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback, extra, refresh=true) ->
   handleDisplay = (formData, callback) ->
     datahandler = DataHandler.create formData, call, callback, session, wizardName, domain, cancelCallback, extra
     datahandler.render()
@@ -111,6 +111,8 @@ runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallbac
 
     if cb
       cb result
+    if refresh
+      location.reload(true)
 
   initialAction_ = $.parseJSON(initialAction)
 
