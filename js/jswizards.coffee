@@ -6,7 +6,7 @@ log = (args...) ->
 Launch a new wizard
 ###
 usesdomain = true
-launch = (service, domain, name, extra, callback, cancelCallback, refresh=true) ->
+launch = (service, domain, name, extra, callback, cancelCallback, refresh=false) ->
   log "Launching wizard #{ domain }.#{ name } at #{ service }"
   usesdomain = domain.match(/\w{8}-(\w{4}-){3}\w{12}/g) == null
   removeEvent()
@@ -84,7 +84,7 @@ Run a single wizard step
 wizardForm = null
 cleanClose = false
 
-runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback, extra, refresh=true) ->
+runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallback, extra, refresh=false) ->
   handleDisplay = (formData, callback) ->
     datahandler = DataHandler.create formData, call, callback, session, wizardName, domain, cancelCallback, extra
     datahandler.render()
