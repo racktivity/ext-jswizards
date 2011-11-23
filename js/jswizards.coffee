@@ -117,6 +117,9 @@ runWizard = (session, initialAction, call, wizardName, domain, cb, cancelCallbac
   initialAction_ = $.parseJSON(initialAction)
 
   handleAction = (action) ->
+    if not action
+        handleEndOfWizard()
+        return
     switch action.action
       when 'display' then handleDisplay action.params, handleAction
       when 'endofwizard' then handleEndOfWizard action.result
