@@ -16,9 +16,17 @@
 .jswizards-form-buttons {
   padding: 0 1.4em; clear:both;
 }
-
+.jswizards-form-okcancel, .jswizards-form-navi {
+   float:left;
+}
+.jswizards-form-navi {
+   margin-right: 2em;
+}
 .jswizards-form-buttons button {
   margin: 3px;
+}
+.jswizards-form-buttons button.disabled {
+  color: lightgray;
 }
 
 .jswizards-form {
