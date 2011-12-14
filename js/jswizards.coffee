@@ -3,6 +3,27 @@ log = (args...) ->
   console?.log?.apply(console, args) if @JSWIZARDS_ENABLE_DEBUG?
 
 ###
+Make button names changeable
+###
+getButtons = (extra) ->
+  ButtonNames =
+    cancel: 'Cancel'
+    submit: 'Submit'
+    ok: 'OK'
+    yes: 'Yes'
+    no: 'No'
+    next: 'Next'
+    previous: 'Previous'
+
+  if (typeof(extra) == 'string')
+    extra = $.parseJSON(extra)
+
+  if (extra &&  extra.language)
+    ButtonNames = $.extend(ButtonNames,extra.language);
+
+  return ButtonNames
+
+###
 Launch a new wizard
 ###
 usesdomain = true
@@ -273,7 +294,7 @@ class MessageBoxDataHandler extends DataHandler
         action = $.parseJSON data
         that.callback action
 
-    new MessageBoxForm wizardForm, @data, callback
+    new MessageBoxForm wizardForm, @data, callback, @extra
 
   getData: ->
     @data.value
@@ -287,7 +308,7 @@ class MessageBoxDataHandler extends DataHandler
 DataHandler.create = (data, call, callback, session, wizardName, domain, cancelCallback, extra) ->
   switch data.control
     when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain, cancelCallback, extra
-    when 'messagebox' then new MessageBoxDataHandler data, call, callback, session, undefined, undefined, cancelCallback
+    when 'messagebox' then new MessageBoxDataHandler data, call, callback, session, undefined, undefined, cancelCallback, extra
     when 'navigate' then new NavigateDataHandler data, call, callback, session
     else new WizardDataHandler data, call, callback, session, undefined, undefined, cancelCallback
 
@@ -342,7 +363,7 @@ class Form
       .css('visibility', 'hidden')
 
     content.append(loader)
-    
+
     tabsPanel = $('<ul>')
       .addClass 'jswizards-tabs'
 
@@ -350,6 +371,7 @@ class Form
     idx = 0
     tabidx = 0
     activetabname = @datahandler.data.activeTab
+    ButtonNames = getButtons(@datahandler.extra)
     for tab in @tabs
       tabsPanel.append(
         $('<li>').append(
@@ -380,14 +402,14 @@ class Form
           .addClass('jswizards-form-buttons')
           .append(
             $('<button>')
+              .text(ButtonNames.submit)
               .attr('type', 'submit')
               .attr('id', 'jswizards-submit')
               .addClass('button positive')
-              .text('Submit')
             )
           .append(
             $('<button>')
-              .text('Cancel')
+              .text(ButtonNames.cancel)
               .attr('type', 'button')
               .attr('name', 'btn_cancel')
               .addClass('close-floatbox button negative')
@@ -402,21 +424,22 @@ class Form
 
 
 class MessageBoxForm extends Form
-  constructor: (@form, @data, @callback) ->
+  constructor: (@form, @data, @callback, @extra) ->
     null
 
   render: ->
     buttons = []
-    that = this
+    ButtonNames = getButtons(@extra)
+    that     = this
     switch @data.msgboxButtons
-      when 'OKCancel' then buttons = ['Ok', 'Cancel' ]
-      when 'YesNo' then buttons = ['Yes', 'No' ]
-      when 'YesNoCancel' then buttons = ['Yes', 'No', 'Cancel' ]
-      else buttons = ['Ok']
+      when 'OKCancel' then buttons = ['ok', 'cancel' ]
+      when 'YesNo' then buttons = ['yes', 'no' ]
+      when 'YesNoCancel' then buttons = ['yes', 'no', 'cancel' ]
+      else buttons = ['ok']
     buttonoptions = []
     $.each buttons, (index, button) ->
       option =
-        text: button
+        text: ButtonNames[button]
         click: ->
           $(this).dialog "close"
           $(this).dialog "destroy"
