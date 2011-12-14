@@ -22,6 +22,17 @@ getButtons = (extra) ->
     ButtonNames = $.extend(ButtonNames,extra.language);
 
   return ButtonNames
+###
+Check if inner navi should be shown for multiple tab. default - false
+###
+getInnerNavi = (extra) ->
+  if (typeof extra == 'string')
+    extra = $.parseJSON(extra);
+
+  if (extra && extra.innernavi)
+    return true;
+  else
+    return false;
 
 ###
 Launch a new wizard
@@ -205,6 +216,13 @@ class DataHandler
     $("#floatbox-background").addClass('floatbox-background')
     $("#floatbox-box").addClass('floatbox-box')
 
+  refresh: ->
+    box = $("#floatbox-box");
+    height = box.height();
+    if (height > $(window).height())
+      height = $(window).height()
+    box.css("margin-top", "-" + height/2 + "px");
+
 
 ###
 FormDataHandler
@@ -372,7 +390,10 @@ class Form
     tabidx = 0
     activetabname = @datahandler.data.activeTab
     ButtonNames = getButtons(@datahandler.extra)
-    for tab in @tabs
+    innernavi = getInnerNavi(@datahandler.extra)
+    tabList = @tabs
+    that = this
+    for tab in tabList
       tabsPanel.append(
         $('<li>').append(
           $('<a>')
@@ -393,32 +414,72 @@ class Form
           .addClass 'jswizards-tab'
         )
 
-    content.tabs({selected: tabidx})
+    content.tabs(
+      selected: tabidx,
+      show: (e, tab) ->
+        that.datahandler.refresh();
+    )
 
-    form = $('<form>')
-      .append(content)
-      .append(
-        $('<div>')
-          .addClass('jswizards-form-buttons')
-          .append(
-            $('<button>')
-              .text(ButtonNames.submit)
-              .attr('type', 'submit')
-              .attr('id', 'jswizards-submit')
-              .addClass('button positive')
-            )
-          .append(
-            $('<button>')
-              .text(ButtonNames.cancel)
-              .attr('type', 'button')
-              .attr('name', 'btn_cancel')
-              .addClass('close-floatbox button negative')
-              .click (evt) ->
-                evt.preventDefault()
-                false
-            )
+    form = $('<form>').append(content)
+    form.append($('<div>').addClass('jswizards-form-buttons'))
+    if ((tabList.length > 1) && innernavi )
+      setupNavi = (idx) ->
+        if (idx == 0)
+          $('#btn-prev', form).addClass("disabled");
+        else
+          $('#btn-prev', form).removeClass("disabled");
+        if (idx == tabList.length-1)
+          $('#btn-next', form).addClass("disabled");
+        else
+          $('#btn-next', form).removeClass("disabled");
+
+      content.tabs({
+        select: (e, tab) ->
+          setupNavi(tab.index);
+      })
+
+      $('.jswizards-form-buttons', form).append($('<div>')
+        .addClass('jswizards-form-navi')
+        .append($('<button>')
+          .text(ButtonNames.previous)
+          .attr('type', 'button')
+          .attr('id', 'btn-prev')
+          .addClass('button')
+          .click (evt) ->
+            idx = content.tabs('option', 'selected');
+            if (idx>0)
+              content.tabs({selected: tabidx-1});
         )
+        .append($('<button>')
+          .text(ButtonNames.next)
+          .attr('type', 'button')
+          .attr('id', 'btn-next')
+          .addClass('button navigate')
+          .click (evt) ->
+            idx = content.tabs('option', 'selected');
+            if (idx<tabList.length)
+              content.tabs({selected: tabidx+1});
+        )
+      )
+      setupNavi(tabidx);
 
+    $('.jswizards-form-buttons', form).append($('<div>')
+        .addClass('jswizards-form-okcancel')
+        .append($('<button>')
+          .text(ButtonNames.submit)
+          .attr('type', 'submit')
+          .attr('id', 'jswizards-submit')
+          .addClass('button positive'))
+        .append($('<button>')
+          .text(ButtonNames.cancel)
+          .attr('type', 'button')
+          .attr('name', 'btn_cancel')
+          .addClass('close-floatbox button negative')
+          .click (evt) ->
+            evt.preventDefault()
+            false
+        )
+    );
     @form = form
     form
 
