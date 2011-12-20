@@ -210,7 +210,7 @@ class DataHandler
         sessionId: that.session
       that.call 'stop', args, (data, status) ->
         if that.cancelCallback
-          that.cancelCallback
+          that.cancelCallback()
         true
 
     $("#floatbox-background").addClass('floatbox-background')
