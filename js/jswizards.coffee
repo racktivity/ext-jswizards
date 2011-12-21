@@ -5,6 +5,15 @@ log = (args...) ->
 ###
 Make button names changeable
 ###
+ButtonValues =
+  cancel: 'Cancel'
+  submit: 'Submit'
+  ok: 'Ok'
+  yes: 'Yes'
+  no: 'No'
+  next: 'Next'
+  previous: 'Previous'
+
 getButtons = (extra) ->
   ButtonNames =
     cancel: 'Cancel'
@@ -504,7 +513,7 @@ class MessageBoxForm extends Form
         click: ->
           $(this).dialog "close"
           $(this).dialog "destroy"
-          that.callback(button)
+          that.callback(ButtonValues[button])
       buttonoptions.push option
 
     iconspaths =
