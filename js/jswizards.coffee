@@ -591,6 +591,7 @@ class Control
   constructor: (@data, @tab) ->
     @control = data.control
     @id = "#{@tab.name}-#{@data.name}"
+    @messageid = "message-#{@tab.name}-#{@data.name}"
 
   render: (container) ->
     l = $('<label>')
@@ -599,11 +600,13 @@ class Control
     if not @data.optional
       l.append $('<span>').text('*').attr('style','color:red; margin-left:2px;')
     container.append l
-    if @data.status? and @data.message? and @data.status.toLowerCase() == 'error'
-      e = $('<span>')
+    if @data.message?
+      e = $("<span id='#{@messageid}'>")
         .html(@data.message)
         .addClass('jswizards-control-error')
         .addClass('error')
+      if not @data.status or @data.status.toLowerCase() != 'error'
+          e.hide()
       container.append e
 
    addCallback: (element) ->
@@ -690,28 +693,26 @@ class TextControl extends Control
 
 
     #TODO Enhance validation stuff
+    message = $("##{@messageid}")
+    valid = true
     if not @validateOptional value
-      ensureTab(this.tab)
-      element.addClass('error')
-      control.value = null
-      return false
+      valid = false
     else if  not @checkValidator value
-      ensureTab(this.tab)
-      element.addClass('error')
-      control.value = null
-      return false
+      valid = false
     else if not @validateNumber value
-      ensureTab(this.tab)
-      element.addClass('error')
-      control.value = null
-      return false
+      valid = false
     else if not @validateMinMax value
+      valid = false
+    
+    if not valid
       ensureTab(this.tab)
       element.addClass('error')
       control.value = null
+      message.show()
       return false
 
     element.removeClass('error')
+    message.hide()
     control.value = if @data.control=='number' then parseInt(value) else value
 
     true
