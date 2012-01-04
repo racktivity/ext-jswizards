@@ -717,7 +717,58 @@ class TextControl extends Control
 
     true
 
-
+###
+Password Control
+###
+class PasswordControl extends TextControl
+    
+  render: (container) ->
+    super
+    if @data.confirm
+      getStrength = (password)->
+        strength = Math.ceil((password.length)/6)
+        if strength > 3
+          strength = 3
+        if password.search(/[a-z]/) != -1
+          strength++
+        if password.search(/[A-Z]/) != -1
+          strength++  
+        if password.search(/[0-9]/) != -1
+          strength++
+        if password.search(/[^a-zA-Z0-9]/) != -1
+          strength++
+        strength
+      outerbar = $("<div>", {style: "background-color: gray; width:245px; height: 5px;"})
+      bar = $("<div>", {style: "background-color: red; width:0px; height: 5px;"}).appendTo(outerbar)
+      
+      j = $('<input>')
+          .attr('type', 'password')
+      j.attr('id', @id+"confirm").addClass('text').appendTo(container)
+      outerbar.appendTo(container)
+      $('#' +@id).live 'keyup', =>
+        strength = getStrength($("#" + @id).val())
+        bar.css("width", 35 *strength)
+        if strength < 3
+          bar.css("background-color", "red")
+        else if strength < 5
+          bar.css("background-color" , "orange")
+        else
+          bar.css("background-color" , "green")
+      j
+  checkValidator: (value) ->
+    if @data.confirm
+        password = $("#" + @id).val()
+        cpassword = $("#" + @id + "confirm").val()
+        if password != cpassword || password.search(/^[\x00-\x7F]*$/) != -1
+            console.log("NOT EQUAL");
+            return false
+        return true
+    else
+        return super
+        
+    
+    
+    
 ###
 Label Control
 ###
@@ -1011,7 +1062,11 @@ class DateControl extends DateHelper
 
 Control.create = (data, tab) ->
   switch data.control
-    when 'text' then new TextControl data, tab
+    when 'text'
+      if data.password
+        new PasswordControl data, tab  
+      else 
+        new TextControl data, tab 
     when 'label' then new LabelControl data, tab
     when 'dropdown' then new DropDownControl data, tab
     when 'dropdownext' then new DropDownControl data, tab
