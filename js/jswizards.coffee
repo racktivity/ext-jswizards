@@ -457,7 +457,7 @@ class Form
           .click (evt) ->
             idx = content.tabs('option', 'selected');
             if (idx>0)
-              content.tabs({selected: tabidx-1});
+              content.tabs({selected: idx-1});
         )
         .append($('<button>')
           .text(ButtonNames.next)
@@ -467,7 +467,7 @@ class Form
           .click (evt) ->
             idx = content.tabs('option', 'selected');
             if (idx<tabList.length)
-              content.tabs({selected: tabidx+1});
+              content.tabs({selected: idx+1});
         )
       )
       setupNavi(tabidx);
