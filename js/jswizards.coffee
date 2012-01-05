@@ -759,8 +759,7 @@ class PasswordControl extends TextControl
     if @data.confirm
         password = $("#" + @id).val()
         cpassword = $("#" + @id + "confirm").val()
-        if password != cpassword || password.search(/^[\x00-\x7F]*$/) != -1
-            console.log("NOT EQUAL");
+        if password != cpassword
             return false
         return true
     else
