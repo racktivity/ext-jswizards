@@ -457,7 +457,7 @@ class Form
           .click (evt) ->
             idx = content.tabs('option', 'selected');
             if (idx>0)
-              content.tabs({selected: tabidx-1});
+              content.tabs({selected: idx-1});
         )
         .append($('<button>')
           .text(ButtonNames.next)
@@ -467,7 +467,7 @@ class Form
           .click (evt) ->
             idx = content.tabs('option', 'selected');
             if (idx<tabList.length)
-              content.tabs({selected: tabidx+1});
+              content.tabs({selected: idx+1});
         )
       )
       setupNavi(tabidx);
@@ -761,7 +761,7 @@ class PasswordControl extends TextControl
     if @data.confirm
         password = $("#" + @id).val()
         cpassword = $("#" + @id + "confirm").val()
-        if password != cpassword || password.search(/^[\x00-\x7F]*$/) != -1
+        if password != cpassword
             $("#"+ @messageid).text("Passwords don't match");
             return false
         return true
