@@ -623,6 +623,8 @@ class Control
 
   validateOptional: (value) ->
     if not @data.optional and (not value or value == '' or ($.isArray(value) and value.length <= 0))
+      if @data.message?
+        $("#"+ @messageid).text(@data.message)
       return false
     true
 
@@ -760,7 +762,7 @@ class PasswordControl extends TextControl
         password = $("#" + @id).val()
         cpassword = $("#" + @id + "confirm").val()
         if password != cpassword || password.search(/^[\x00-\x7F]*$/) != -1
-            console.log("NOT EQUAL");
+            $("#"+ @messageid).text("Passwords don't match");
             return false
         return true
     else
