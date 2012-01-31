@@ -517,10 +517,10 @@ class MessageBoxForm extends Form
       buttonoptions.push option
 
     iconspaths =
-      Information: '/static/jswizards/icons/information.png'
-      Error: '/static/jswizards/icons/error.png'
-      Warning: '/static/jswizards/icons/warning.png'
-      Question: '/static/jswizards/icons/question.png'
+      Information: 'jswizards/icons/information.png'
+      Error: 'jswizards/icons/error.png'
+      Warning: 'jswizards/icons/warning.png'
+      Question: 'jswizards/icons/question.png'
     $("<div>")
       .dialog
         buttons: buttonoptions
