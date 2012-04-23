@@ -297,14 +297,18 @@ class WizardDataHandler extends DataHandler
 
 class NavigateDataHandler extends DataHandler
   getForm: ->
-    document.location = @data.url
     class Dummy
       render: ->
         true
     new Dummy()
 
-
-
+  registerSubmit: ->
+    document.location = @data.url
+    null
+    
+  display: ->
+    null
+    
   getData: ->
     @data.url
 
