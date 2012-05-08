@@ -509,15 +509,16 @@ class MessageBoxForm extends Form
       when 'OKCancel' then buttons = ['ok', 'cancel' ]
       when 'YesNo' then buttons = ['yes', 'no' ]
       when 'YesNoCancel' then buttons = ['yes', 'no', 'cancel' ]
-      else buttons = ['ok']
+      when 'OK' then buttons = ['ok']
+      else buttons = @data.msgboxButtons.split(';')
     buttonoptions = []
     $.each buttons, (index, button) ->
       option =
-        text: ButtonNames[button]
+        text: ButtonNames[button] or button
         click: ->
           $(this).dialog "close"
           $(this).dialog "destroy"
-          that.callback(ButtonValues[button])
+          that.callback(ButtonValues[button] or button)
       buttonoptions.push option
 
     iconspaths =
