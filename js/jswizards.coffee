@@ -505,12 +505,14 @@ class MessageBoxForm extends Form
     buttons = []
     ButtonNames = getButtons(@extra)
     that     = this
-    switch @data.msgboxButtons
-      when 'OKCancel' then buttons = ['ok', 'cancel' ]
-      when 'YesNo' then buttons = ['yes', 'no' ]
-      when 'YesNoCancel' then buttons = ['yes', 'no', 'cancel' ]
-      when 'OK' then buttons = ['ok']
-      else buttons = @data.msgboxButtons.split(';')
+    if typeof @data.msgboxButtons == "object"
+      buttons = @data.msgboxButtons
+    else
+      switch @data.msgboxButtons
+        when 'OKCancel' then buttons = ['ok', 'cancel' ]
+        when 'YesNo' then buttons = ['yes', 'no' ]
+        when 'YesNoCancel' then buttons = ['yes', 'no', 'cancel' ]
+        else buttons = ['ok']
     buttonoptions = []
     $.each buttons, (index, button) ->
       option =
