@@ -305,10 +305,10 @@ class NavigateDataHandler extends DataHandler
   registerSubmit: ->
     document.location = @data.url
     null
-    
+
   display: ->
     null
-    
+
   getData: ->
     @data.url
 
@@ -615,6 +615,9 @@ class Control
       if not @data.status or @data.status.toLowerCase() != 'error'
           e.hide()
       container.append e
+    if @data.status and @data.status.toLowerCase() == 'error'
+       container.addClass('control-error')
+    container
 
    addCallback: (element) ->
      that = this
@@ -712,7 +715,7 @@ class TextControl extends Control
       valid = false
     else if not @validateMinMax value
       valid = false
-    
+
     if not valid
       ensureTab(this.tab)
       element.addClass('error')
@@ -730,7 +733,7 @@ class TextControl extends Control
 Password Control
 ###
 class PasswordControl extends TextControl
-    
+
   render: (container) ->
     super
     if @data.confirm
@@ -741,7 +744,7 @@ class PasswordControl extends TextControl
         if password.search(/[a-z]/) != -1
           strength++
         if password.search(/[A-Z]/) != -1
-          strength++  
+          strength++
         if password.search(/[0-9]/) != -1
           strength++
         if password.search(/[^a-zA-Z0-9]/) != -1
@@ -749,7 +752,7 @@ class PasswordControl extends TextControl
         strength
       outerbar = $("<div>", {style: "background-color: gray; width:245px; height: 5px;"})
       bar = $("<div>", {style: "background-color: red; width:0px; height: 5px;"}).appendTo(outerbar)
-      
+
       j = $('<input>')
           .attr('type', 'password')
       j.attr('id', @id+"confirm").addClass('text').appendTo(container)
@@ -774,10 +777,10 @@ class PasswordControl extends TextControl
         return true
     else
         return super
-        
-    
-    
-    
+
+
+
+
 ###
 Label Control
 ###
@@ -1073,9 +1076,9 @@ Control.create = (data, tab) ->
   switch data.control
     when 'text'
       if data.password
-        new PasswordControl data, tab  
-      else 
-        new TextControl data, tab 
+        new PasswordControl data, tab
+      else
+        new TextControl data, tab
     when 'label' then new LabelControl data, tab
     when 'dropdown' then new DropDownControl data, tab
     when 'dropdownext' then new DropDownControl data, tab
