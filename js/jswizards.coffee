@@ -585,6 +585,7 @@ class Tab
       controlContainer = $('<div>')
         .addClass('jswizards-control')
         .addClass("jswizards-control-#{ control.control }")
+        .attr('id', "control-#{ control.id }")
 
       control.render controlContainer
       content.append controlContainer
