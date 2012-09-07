@@ -208,6 +208,9 @@ class DataHandler
       fade: false
       buttonPosition: 'none'
 
+    if $.browser.msie
+      @form.form.hide().show()
+
     #Register Remove Event for the floatbox
     that  = this
     $("#floatbox-box").bind "remove", ->
