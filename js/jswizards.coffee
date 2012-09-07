@@ -66,13 +66,16 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
       success: callback
       error: (data, error) ->
         log(data, error)
-        errorobj = $.parseJSON data.responseText
+        try
+          errorobj = $.parseJSON data.responseText
+        catch error
+          errorobj =
+            message: "The request failed"
+            exception: data.statusText + " (" + data.status + ")"
         msgp = $("<p>").addClass("jswizards-hide")
-          .append($("<p>").html("Message: " + errorobj['message']))
-          .append($("<p>").html("Exception: "))
-          .append($("<p>", {'style': 'white-space:pre;'}).text(errorobj['exception'].replace(/\\n/g, "\n")))
+          .append($("<p>").addClass("jswizards-error").text(errorobj['exception'].replace(/\\n/g, "\n")))
         e = $("<div>")
-          .html("Error Details")
+          .html("Error Details &raquo;")
           .addClass("jswizards-error-details")
           .append(msgp)
 
@@ -84,7 +87,7 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
            p.removeClass("jswizards-show").addClass("jswizards-hide")
           true
         $("<div title='Server Error'>")
-          .html("The Server Generated an Error!")
+          .html("The Server Generated an Error!<br /><strong>" + errorobj['message'] + "</strong>")
           .append(e)
           .dialog
             modal: true
