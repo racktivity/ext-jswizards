@@ -183,7 +183,7 @@ class DataHandler
     that = this
     @form.form.submit (evt) ->
       evt.preventDefault()
-      valid = that.form.serialize(this, that.data, true)
+      valid = that.form.serialize($(this), that.data, true)
 
       if not valid
         throw new Error 'Validation failed'
