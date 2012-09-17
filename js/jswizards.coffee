@@ -214,6 +214,8 @@ class DataHandler
     if $.browser.msie
       @form.form.hide().show()
 
+    $("*:input[type!=hidden]:first", @form.form).focus()
+
     #Register Remove Event for the floatbox
     that  = this
     $("#floatbox-box").bind "remove", ->
