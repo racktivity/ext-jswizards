@@ -123,3 +123,31 @@
 .jswizards-error-details p p {
     margin-bottom: 0px!important;
 }
+
+.jswizards-progress-outer {
+    margin-top: 5px;
+    width: 90%;
+    border: 1px solid black;
+    background-color: #FFFFFF;
+    padding:1px;
+    overflow: hidden;
+    float: left;
+}
+
+.jswizards-progress-inner {
+    background-color: #92C6FE;
+    float: left;
+}
+
+.jswizards-progress-text{
+    color: #000000;
+    float: right;
+    margin-left: 3px;
+    margin-top: 5px;
+}
+
+.jswizards-progress-message{
+    width: 100%;
+    font-weight: bold;
+    margin-top: 5px;
+}

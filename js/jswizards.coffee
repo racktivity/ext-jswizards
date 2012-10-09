@@ -321,6 +321,9 @@ class NavigateDataHandler extends DataHandler
     @data.url
 
 
+###
+MessageBoxDataHandler
+###
 class MessageBoxDataHandler extends DataHandler
   getForm: ->
     that = this
@@ -344,11 +347,61 @@ class MessageBoxDataHandler extends DataHandler
   display: ->
     null
 
+###
+ProgressDataHandler
+###
+class ProgressDataHandler extends DataHandler
+  getForm: ->
+    that = this
+    callback = (data) ->
+      args =
+        result: JSON.stringify data
+        sessionId: that.session
+
+      that.call 'result', args, (data, status) ->
+        $(that.form.elem).dialog("close")
+        $(that.form.elem).dialog("destroy")
+        action = $.parseJSON data
+        that.callback action
+
+    percentage = (@data.value / (@data.maxvalue - (@data.minvalue - 1))) * 100
+    outerbar = $('<div>').addClass('jswizards-progress-outer')
+    innerbar = $('<div style="width:' + percentage + '%;">').addClass('jswizards-progress-inner')
+    innerbar.html('&nbsp;')
+    outerbar.append(innerbar)
+    progresstext = $('<div>').html(@data.value + '/' + @data.maxvalue)
+    progresstext.addClass('jswizards-progress-text')
+    progressmessage = $('<div>').addClass('jswizards-progress-message').html(@data.message)
+
+    container = $('<div>')
+    container.append(outerbar)
+    container.append(progresstext)
+    container.append(progressmessage)
+
+    data ={
+        msgboxButtons: 'NoButtons',
+        title: @data.title,
+        message: container
+    };
+
+    new MessageBoxForm wizardForm, data, callback, @extra
+
+  getData: ->
+    @data.value
+
+  registerSubmit: ->
+    @form.callback(null)
+    null
+
+  display: ->
+    null
+
 DataHandler.create = (data, call, callback, session, wizardName, domain, cancelCallback, extra) ->
   switch data.control
     when 'form' then new FormDataHandler data, call, callback, session, wizardName, domain, cancelCallback, extra
     when 'messagebox' then new MessageBoxDataHandler data, call, callback, session, undefined, undefined, cancelCallback, extra
     when 'navigate' then new NavigateDataHandler data, call, callback, session
+    when 'progress' then new ProgressDataHandler(data, call, callback, session, wizardName, domain, cancelCallback, extra)
     else new WizardDataHandler data, call, callback, session, undefined, undefined, cancelCallback
 
 
@@ -513,6 +566,7 @@ class MessageBoxForm extends Form
     buttons = []
     ButtonNames = getButtons(@extra)
     that     = this
+    @elem = null
     if typeof @data.msgboxButtons == "object"
       buttons = @data.msgboxButtons
     else
@@ -520,6 +574,7 @@ class MessageBoxForm extends Form
         when 'OKCancel' then buttons = ['ok', 'cancel' ]
         when 'YesNo' then buttons = ['yes', 'no' ]
         when 'YesNoCancel' then buttons = ['yes', 'no', 'cancel' ]
+        when 'NoButtons' then buttons = []
         else buttons = ['ok']
     buttonoptions = []
     $.each buttons, (index, button) ->
@@ -536,7 +591,7 @@ class MessageBoxForm extends Form
       Error: 'jswizards/icons/error.png'
       Warning: 'jswizards/icons/warning.png'
       Question: 'jswizards/icons/question.png'
-    $("<div>")
+    @elem = $("<div>")
       .dialog
         buttons: buttonoptions
         modal: true
@@ -907,7 +962,7 @@ class ChoiceControl extends Control
     true
 
 ###
-Choice Mulitple Control
+Choice Multiple Control
 ###
 class ChoiceMultipleControl extends Control
   render: (container) ->
@@ -996,7 +1051,18 @@ ProgressControl
 ###
 class ProgressControl extends Control
   render: (container) ->
-    @data.value = document.href
+    percentage = (@data.value / (@data.maxvalue - (@data.minvalue - 1))) * 100
+    outerbar = $('<div>').addClass('jswizards-progress-outer')
+    innerbar = $('<div style="width:' + percentage + '%;">').addClass('jswizards-progress-inner')
+    innerbar.html('&nbsp;')
+    outerbar.append(innerbar)
+    progresstext = $('<div>').html(@data.value + '/' + @data.maxvalue)
+    progresstext.addClass('jswizards-progress-text')
+    progressmessage = $('<div>').addClass('jswizards-progress-message').html(@data.message)
+
+    container.append(outerbar)
+    container.append(progresstext)
+    container.append(progressmessage)
 
   serialize: (elem, control) ->
     true
