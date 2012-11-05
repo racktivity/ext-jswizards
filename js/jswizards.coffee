@@ -767,28 +767,30 @@ class TextControl extends Control
               return
             i += 1
 
+    #if validate is false, it means we should not validate field
+    if validate != false
+      #TODO Enhance validation stuff
+      message = $("##{@messageid}")
+      valid = true
+      if not @validateOptional value
+        valid = false
+      else if  not @checkValidator value
+        valid = false
+      else if not @validateNumber value
+        valid = false
+      else if not @validateMinMax value
+        valid = false
 
-    #TODO Enhance validation stuff
-    message = $("##{@messageid}")
-    valid = true
-    if not @validateOptional value
-      valid = false
-    else if  not @checkValidator value
-      valid = false
-    else if not @validateNumber value
-      valid = false
-    else if not @validateMinMax value
-      valid = false
+      if not valid
+        ensureTab(this.tab)
+        element.addClass('error')
+        control.value = null
+        message.show()
+        return false
 
-    if not valid
-      ensureTab(this.tab)
-      element.addClass('error')
-      control.value = null
-      message.show()
-      return false
+      element.removeClass('error')
+      message.hide()
 
-    element.removeClass('error')
-    message.hide()
     control.value = if @data.control=='number' then parseInt(value) else value
 
     true
@@ -1009,20 +1011,23 @@ class ChoiceMultipleControl extends Control
 
     i
 
-  serialize: (elem, control) ->
+  serialize: (elem, control, validate) ->
     element = $("div[htmlfor=#{ @id }]")
     value = new Array()
     $("input[name=#{ @id }]:checked").each ->
       value.push $(this).val()
       true
 
-    #Validation goes here !!
-    if not @validateOptional value
-      element.addClass('error')
-      control.value = null
-      return false
+    #if validate is false, it means we should not validate field
+    if validate != false
+      #Validation goes here !!
+      if not @validateOptional value
+        element.addClass('error')
+        control.value = null
+        return false
 
-    element.removeClass('error')
+      element.removeClass('error')
+
     control.value = value
 
     true
@@ -1116,20 +1121,23 @@ class DateHelper extends Control
 
     i
 
-  serialize: (elem, control) ->
+  serialize: (elem, control, validate) ->
     element = $("input[name=#{ @id }]", elem)
     value = element.val()
 
-    #TODO Enhance validation stuff
-    if not @validateOptional value
-      element.addClass('error')
-      control.value = null
+    #if validate is false, it means we should not validate field
+    if validate != false
+      #TODO Enhance validation stuff
+      if not @validateOptional value
+        element.addClass('error')
+        control.value = null
 
-      return false
+        return false
 
-    value = new Date(value).getTime()/1000
-    element.removeClass('error')
-    control.value = value
+        element.removeClass('error')
+
+      value = new Date(value).getTime()/1000
+      control.value = value
 
     true
 
