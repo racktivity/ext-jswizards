@@ -66,6 +66,16 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
       success: callback
       error: (data, error) ->
         log(data, error)
+        dialogParams =
+            modal: true
+            buttons:
+              Ok: ->
+                $(this).dialog('close').dialog('destroy')
+
+        if data.status == 405
+          return $("<div title='Not authorized'>")
+            .html("You are not authorized to do that.")
+            .dialog(dialogParams);
         try
           errorobj = $.parseJSON data.responseText
         catch error
@@ -73,7 +83,7 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
             message: "The request failed"
             exception: data.statusText + " (" + data.status + ")"
         msgp = $("<p>").addClass("jswizards-hide")
-          .append($("<p>").addClass("jswizards-error").text(errorobj['exception'].replace(/\\n/g, "\n")))
+          .append($("<p>").addClass("jswizards-error").text(errorobj.exception.replace(/\\n/g, "\n")))
         e = $("<div>")
           .html("Error Details &raquo;")
           .addClass("jswizards-error-details")
@@ -87,13 +97,9 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
            p.removeClass("jswizards-show").addClass("jswizards-hide")
           true
         $("<div title='Server Error'>")
-          .html("The Server Generated an Error!<br /><strong>" + errorobj['message'] + "</strong>")
-          .append(e)
-          .dialog
-            modal: true
-            buttons:
-              Ok: ->
-                $(this).dialog('close').dialog('destroy')
+            .html("The Server Generated an Error!<br /><strong>" + errorobj.message + "</strong>")
+            .append(e)
+            .dialog(dialogParams);
 
   args =
     wizardName: name
