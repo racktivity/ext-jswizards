@@ -51,7 +51,7 @@
             buttonPosition: "bellow",
             bgConfig : {
                 position: ($.browser.msie) ? "absolute" : "fixed",
-                zIndex: 8,
+                zIndex: 9999,
                 width: "100%",
                 height: "100%",
                 top:  "0px",
@@ -62,7 +62,7 @@
             },
             boxConfig : {
                 position : ($.browser.msie) ? "absolute" : "fixed",
-                zIndex: 9,
+                zIndex: 10000,
                 width: getWidth() + "px",
                 marginLeft: "-" + (getWidth() / 2) + "px",
                 height: "auto",
