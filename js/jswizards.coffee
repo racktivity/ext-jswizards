@@ -371,18 +371,17 @@ class ProgressDataHandler extends DataHandler
         that.callback action
 
     percentage = (@data.value / (@data.maxvalue - (@data.minvalue - 1))) * 100
-    outerbar = $('<div>').addClass('jswizards-progress-outer')
+    outerbar = $('<td>').addClass('jswizards-progress-outer')
     innerbar = $('<div style="width:' + percentage + '%;">').addClass('jswizards-progress-inner')
     innerbar.html('&nbsp;')
     outerbar.append(innerbar)
-    progresstext = $('<div>').html(@data.value + '/' + @data.maxvalue)
+    progresstext = $('<td>').html(@data.value + '/' + @data.maxvalue)
     progresstext.addClass('jswizards-progress-text')
-    progressmessage = $('<div>').addClass('jswizards-progress-message').html(@data.message)
+    progressmessage = $('<td colspan="2">').addClass('jswizards-progress-message').html(@data.message)
 
-    container = $('<div>')
-    container.append(outerbar)
-    container.append(progresstext)
-    container.append(progressmessage)
+    container = $('<table>').addClass('jswizards-progress')
+    container.append($('<tr>').append(outerbar).append(progresstext))
+    container.append($('<tr>').append(progressmessage))
 
     data ={
         msgboxButtons: 'NoButtons',
@@ -602,8 +601,9 @@ class MessageBoxForm extends Form
         buttons: buttonoptions
         modal: true
         title: @data.title
-      .append($("<img>").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
-      .append(@data.message)
+    if @data.msgboxIcon
+        @elem.append($("<img>").attr("src", iconspaths[@data.msgboxIcon]).attr("align", 'left'))
+    @elem.append(@data.message)
     @form
 
   serialize: ->

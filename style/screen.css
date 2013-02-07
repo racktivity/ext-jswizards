@@ -124,30 +124,32 @@
     margin-bottom: 0px!important;
 }
 
-.jswizards-progress-outer {
-    margin-top: 5px;
-    width: 90%;
-    border: 1px solid black;
-    background-color: #FFFFFF;
-    padding:1px;
-    overflow: hidden;
-    float: left;
+.jswizards-progress {
+   margin-top: 5px;
 }
+    .jswizards-progress .jswizards-progress-outer {
+        width: 265px;
+        margin: 0;
+        padding: 0;
+        border: 1px solid black;
+        background-color: #FFFFFF;
+        overflow: hidden;
+    }
 
-.jswizards-progress-inner {
-    background-color: #92C6FE;
-    float: left;
-}
+    .jswizards-progress .jswizards-progress-inner {
+        background-color: #92C6FE;
+        float: left;
+    }
 
-.jswizards-progress-text{
-    color: #000000;
-    float: right;
-    margin-left: 3px;
-    margin-top: 5px;
-}
+    .jswizards-progress .jswizards-progress-text{
+        width: 35px;
+        margin: 0;
+        padding:0 0 0 3px;
+        color: #000000;
+    }
 
-.jswizards-progress-message{
-    width: 100%;
-    font-weight: bold;
-    margin-top: 5px;
-}
+    .jswizards-progress .jswizards-progress-message{
+        font-weight: bold;
+        padding: 5px 0;
+        background-color: transparent!important;
+    }
