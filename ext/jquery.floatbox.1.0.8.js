@@ -87,9 +87,6 @@
             var content = typeof settings.content === "string" ? settings.content : settings.content.clone();
             //inserts the background element in the document
             $("<div></div>")
-                .bind("click", function () {
-                    closeBox();
-                })
                 .attr("id", settings.bg)
                 .css(settings.bgConfig)
                 .width(($.browser.msie) ? document.body.clientWidth : "100%")
