@@ -689,14 +689,23 @@ class Control
        container.addClass('control-error')
     container
 
-   addCallback: (element) ->
-     that = this
-     if @data.callback? and @data.trigger?
-       if @data.trigger == 'change'
-         element.change(-> that.tab.form.datahandler.oncallback(that.data.callback))
-       else if @data.trigger == 'click'
-         element.click(-> that.tab.form.datahandler.oncallback(that.data.callback))
-     true
+  addCallback: (element) ->
+    that = this
+    if @data.callback? and @data.trigger?
+      if @data.trigger == 'change'
+        element.change(-> that.tab.form.datahandler.oncallback(that.data.callback))
+      else if @data.trigger == 'click'
+        element.click(-> that.tab.form.datahandler.oncallback(that.data.callback))
+    true
+
+  ensureTab: (tab) ->
+    if tab.form.datahandler.getData().activeTab != tab.name
+      i = 0
+      for localTab in tab.form.tabs
+        if localTab == tab
+          tab.form.form.find(".ui-tabs").tabs("select", i)
+          return
+        i += 1
 
   serialize: (elem, control) ->
     throw new Error 'Not implemented'
@@ -762,17 +771,6 @@ class TextControl extends Control
     element = $("##{ @id }", elem)
     value = element.val()
 
-    ensureTab = (tab) ->
-      if not validate
-        return
-      if tab.form.datahandler.getData().activeTab != tab.name
-          i = 0
-          for localTab in tab.form.tabs
-            if localTab == tab
-              tab.form.form.find(".ui-tabs").tabs("select", i)
-              return
-            i += 1
-
     #if validate is false, it means we should not validate field
     if validate != false
       #TODO Enhance validation stuff
@@ -788,7 +786,7 @@ class TextControl extends Control
         valid = false
 
       if not valid
-        ensureTab(this.tab)
+        @ensureTab(this.tab)
         element.addClass('error')
         control.value = null
         message.show()
@@ -1027,12 +1025,16 @@ class ChoiceMultipleControl extends Control
     #if validate is false, it means we should not validate field
     if validate != false
       #Validation goes here !!
+      message = $("##{@messageid}")
       if not @validateOptional value
+        @ensureTab(this.tab)
         element.addClass('error')
         control.value = null
+        message.show()
         return false
 
       element.removeClass('error')
+      message.hide()
 
     control.value = value
 
