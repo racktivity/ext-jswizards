@@ -75,13 +75,19 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
         if data.status == 405
           return $("<div title='Not authorized'>")
             .html("You are not authorized to do that.")
-            .dialog(dialogParams);
+            .dialog(dialogParams)
         try
           errorobj = $.parseJSON data.responseText
         catch error
           errorobj =
             message: "The request failed"
             exception: data.statusText + " (" + data.status + ")"
+        session = args.sessionId || this.session;
+        if data.status == 500 and errorobj.exception == "'" + session + "'"
+          return $("<div title='Connection reset'>")
+            .html("Server unexpectedly finished this wizard session, please try again.")
+            .dialog(dialogParams)
+
         msgp = $("<p>").addClass("jswizards-hide")
           .append($("<p>").addClass("jswizards-error").text(errorobj.exception.replace(/\\n/g, "\n")))
         e = $("<div>")
@@ -479,7 +485,7 @@ class Form
             .attr('href', "#tab-#{ tab.name }")
             .append(
               $('<span>')
-                .text(tab.text)
+                .html(tab.text)
             )
           )
         )
