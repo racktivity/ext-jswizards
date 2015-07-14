@@ -63,6 +63,7 @@ launch = (service, domain, name, extra, callback, cancelCallback, refresh=false)
       type: 'POST'
       data: args
       cache: true # cached uses _ which doesn't work with the appserver
+      timeout: 120000
       success: callback
       error: (data, error) ->
         log(data, error)
